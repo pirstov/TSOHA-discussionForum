@@ -1,4 +1,4 @@
-# TSOHA discussionForum
+# TSOHA-discussionForum
 Repository for the database application course arranged by Helsinki University. The application is intended to provide a discussion forum.
 
 Out of the suggested topics, I decided to implement the discussion forum application. The theme of the discussion forum is still open, but I did not consider it too important at this stage. However, I have considered something related to a MMO RPG called "World of Warcraft". Alternative theme could be related to renewable energy sources and their integration to power systems.
