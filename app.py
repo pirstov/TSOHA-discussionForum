@@ -30,7 +30,11 @@ db = SQLAlchemy(app)
 @app.route("/")
 def index():
 	# Query the DB for different sections
-	result = db.session.execute("SELECT section_name FROM sections")
+	# --------------------------------------------
+	# TBD: implement querying for the number of threads in the section
+	# --------------------------------------------
+	result = db.session.execute("SELECT S.id, S.section_name, count(*), max(M.posting_time) FROM sections S" \
+		                        " left join messages M on S.id = M.id GROUP BY S.id")
 	section_names = result.fetchall()
 	return render_template("index.html", sections = section_names)
 
@@ -80,3 +84,8 @@ def login():
 def logout():
 	del session["username"]
 	return redirect("/")
+
+# pages for different sections
+@app.route("/section/<id>")
+def section():
+	pass
