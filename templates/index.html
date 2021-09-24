@@ -1,7 +1,9 @@
+<!-- Title and forum name with a brief description -->
 <title>The forum</title>
 <h1>The forum</h1>
 <h2>A place for discussion</h2>
 
+<!-- Log in / log out possibility -->
 {% if session.username %}
 <p>You are logged in as {{ session.username }}</p>
 <a href="/logout">Log out</a>
@@ -13,3 +15,9 @@
 <a href="/register">Create account</a>
 {% endif %}
 
+<!-- For displaying the current sections in the forum -->
+<hr>
+{% for section in sections %}
+{{ section.section_name }}
+<hr>
+{% endfor %}

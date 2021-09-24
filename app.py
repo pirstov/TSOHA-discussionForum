@@ -29,7 +29,10 @@ db = SQLAlchemy(app)
 # Root page
 @app.route("/")
 def index():
-	return render_template("index.html")
+	# Query the DB for different sections
+	result = db.session.execute("SELECT section_name FROM sections")
+	section_names = result.fetchall()
+	return render_template("index.html", sections = section_names)
 
 # User registration page
 @app.route("/register")
