@@ -3,6 +3,9 @@ from logging import debug
 from flask import Flask
 from flask import redirect, render_template, request, session
 
+# Database related library
+from flask_sqlalchemy import SQLAlchemy
+
 # For hashing the passwords
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -18,6 +21,11 @@ app = Flask(__name__)
 # -----------------------------------------------------
 app.secret_key = SECRET_KEY
 
+# Define the database location for the app
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///ville"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
+
 # Root page
 @app.route("/")
 def index():
@@ -26,7 +34,7 @@ def index():
 # User registration page
 @app.route("/register")
 def register():
-	pass
+	return render_template("register.html")
 
 # Account creation process
 @app.route("/createaccount", methods=["POST"])
@@ -41,8 +49,10 @@ def createaccount():
 
 	# Insert the new user into the appropriate database table
 	sql = "INSERT INTO users (username, password) VALUES (:username, :password)"
-	db.session.execute(sql, {"username":username, "pasword":password})
+	db.session.execute(sql, {"username":username, "password":password})
 	db.session.commit()
+
+	return redirect("/")
 
 # Log in page
 @app.route("/loginpage")
