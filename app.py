@@ -33,8 +33,9 @@ def index():
 	# --------------------------------------------
 	# TBD: implement querying for the number of threads in the section
 	# --------------------------------------------
-	result = db.session.execute("SELECT S.id, S.section_name, count(*), max(M.posting_time) FROM sections S" \
-		                        " left join messages M on S.id = M.id GROUP BY S.id")
+	result = db.session.execute("SELECT S.id, S.section_name, count(DISTINCT T.id) AS thread_count, count(M.id) AS message_count, " \
+								" max(M.posting_time) FROM sections S LEFT JOIN threads T ON S.id = T.section_id " \
+								"LEFT JOIN messages M on T.id = M.thread_id GROUP BY S.id")
 	section_names = result.fetchall()
 	return render_template("index.html", sections = section_names)
 
@@ -88,4 +89,7 @@ def logout():
 # pages for different sections
 @app.route("/section/<id>")
 def section():
+	# -----------------------------------------------
+	# TBD: Implement printing out the different threads for a section
+	# -----------------------------------------------
 	pass
