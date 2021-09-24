@@ -1,0 +1,15 @@
+<title>The forum</title>
+<h1>The forum</h1>
+<h2>A place for discussion</h2>
+
+{% if session.username %}
+<p>You are logged in as {{ session.username }}</p>
+<a href="/logout">Log out</a>
+
+{% else %}
+<p>You are not logged in.</p>
+<a href="/loginpage">Log in</a> 
+<br>
+<a href="/accountcreationpage">Create account</a>
+{% endif %}
+
