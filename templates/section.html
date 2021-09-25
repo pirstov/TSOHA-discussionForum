@@ -1,5 +1,6 @@
 {{ threads[0]["section_name"] }}
 <hr>
+<!-- TBD: Implement possibility of creating new threads -->
 {% for thread in threads %}
 <a href="/section/{{ id }}/{{ thread.id }}">{{ thread.thread_name }}</a> <br>
 Created: {{ thread.posting_time }} <br>
