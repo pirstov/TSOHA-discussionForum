@@ -21,6 +21,6 @@
 <a href="/section/{{ section.id }}">{{ section.section_name }}</a><br>
 Number of threads: {{ section.thread_count }} <br>
 Number of messages: {{ section.message_count }}<br>
-Time stamp of the latest message: {{ section.max }}
+Time stamp of the latest message: {{ section.max.strftime("%Y-%m-%d %H:%M:%S") }}
 <hr>
 {% endfor %}

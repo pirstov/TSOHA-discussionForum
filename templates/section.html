@@ -3,7 +3,7 @@
 <!-- TBD: Implement possibility of creating new threads -->
 {% for thread in threads %}
 <a href="/section/{{ id }}/{{ thread.id }}">{{ thread.thread_name }}</a> <br>
-Created: {{ thread.posting_time }} <br>
+Created: {{ thread.posting_time.strftime("%Y-%m-%d %H:%M:%S") }} <br>
 Number of replies: TBD <br>
 <hr>
 {% endfor %}
