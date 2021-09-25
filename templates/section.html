@@ -1,7 +1,7 @@
-{{ section_name }}
+{{ threads[0]["section_name"] }}
 <hr>
 {% for thread in threads %}
-{{ thread.thread_name }} <br>
+<a href="/section/{{ id }}/{{ thread.id }}">{{ thread.thread_name }}</a> <br>
 Created: {{ thread.posting_time }} <br>
 Number of replies: TBD <br>
 <hr>

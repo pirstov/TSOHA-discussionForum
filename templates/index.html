@@ -18,9 +18,7 @@
 <!-- For displaying the current sections in the forum -->
 <hr>
 {% for section in sections %}
-<!-- TBD: Implement the area name as a link that takes you to the area itself -->
 <a href="/section/{{ section.id }}">{{ section.section_name }}</a><br>
-<!-- TBD: implement the printing of the number of threads in an area -->
 Number of threads: {{ section.thread_count }} <br>
 Number of messages: {{ section.message_count }}<br>
 Time stamp of the latest message: {{ section.max }}

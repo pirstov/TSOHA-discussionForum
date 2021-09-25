@@ -86,14 +86,21 @@ def logout():
 	del session["username"]
 	return redirect("/")
 
-# pages for different sections
+# Pages for different sections
 @app.route("/section/<id>")
 def section(id):
 	# -----------------------------------------------
 	# TBD: Implement counting of messages within each thread
-	# TBD: Implement inclusion of the section name to section.html
 	# -----------------------------------------------
-	sql = "SELECT id, posting_time, thread_name FROM threads where section_id=:id"
+	sql = "SELECT T.id, T.posting_time, T.thread_name, S.section_name FROM threads T left join sections S on T.section_id = S.id WHERE section_id=:id"
 	result = db.session.execute(sql, {"id": id})
 	threads = result.fetchall()
-	return render_template("section.html", section_name = id, threads = threads)
+	return render_template("section.html", id = id, threads = threads)
+
+# Pages for different threads
+@app.route("/section/<id>/<thread_id>")
+def thread(id, thread_id):
+	# -------------------------------------------
+	# TBD: Implement presenting each thread as a chain of messages
+	# -------------------------------------------
+	return render_template("thread.html")
