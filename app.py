@@ -88,8 +88,12 @@ def logout():
 
 # pages for different sections
 @app.route("/section/<id>")
-def section():
+def section(id):
 	# -----------------------------------------------
-	# TBD: Implement printing out the different threads for a section
+	# TBD: Implement counting of messages within each thread
+	# TBD: Implement inclusion of the section name to section.html
 	# -----------------------------------------------
-	pass
+	sql = "SELECT id, posting_time, thread_name FROM threads where section_id=:id"
+	result = db.session.execute(sql, {"id": id})
+	threads = result.fetchall()
+	return render_template("section.html", section_name = id, threads = threads)

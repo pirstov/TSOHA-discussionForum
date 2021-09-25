@@ -1,0 +1,8 @@
+{{ section_name }}
+<hr>
+{% for thread in threads %}
+{{ thread.thread_name }} <br>
+Created: {{ thread.posting_time }} <br>
+Number of replies: TBD <br>
+<hr>
+{% endfor %}
