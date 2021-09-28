@@ -39,4 +39,6 @@ To test this app in Heroku, enter the following in command line while accessing 
 
 This should yield succesful deployment of a Heroku webpage for the discussion forum.
 
+Link to the Heroku app: http://tsoha-discussionforum.herokuapp.com/
+
 ---------------------------------------
