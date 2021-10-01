@@ -38,7 +38,7 @@ def index():
 # User registration page
 @app.route("/register")
 def register():
-	return render_template("register.html")
+	return render_template("register.html", error=None)
 
 # Account creation process
 @app.route("/createaccount", methods=["POST"])
@@ -62,7 +62,8 @@ def createaccount():
 		return redirect("/")
 	else:
 		# refresh the account creation page with an error message
-		return redirect("/register")
+		error = 'Username already in use!'
+		return render_template("register.html", error=error)
 
 # Log in page
 @app.route("/loginpage")

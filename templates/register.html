@@ -1,3 +1,7 @@
+<b>Account creation page</b>
+{% if error %}
+<p class=error><strong style="color:red">Error:</strong> {{ error }}
+{% endif %}
 <form action="/createaccount" method ="POST">
 <p>Type in your desired username:<br>
 <input type="text" name="username"></p>
