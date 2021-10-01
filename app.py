@@ -3,6 +3,9 @@ from logging import debug
 from flask import Flask
 from flask import redirect, render_template, request, session
 
+# For formatting time stamp printing
+from datetime import datetime
+
 # For configuring flask through the .env file
 from os import getenv
 
@@ -12,7 +15,6 @@ from flask_sqlalchemy import SQLAlchemy
 # For hashing the passwords
 from werkzeug.security import check_password_hash, generate_password_hash
 
-
 # Create a Flask object
 app = Flask(__name__)
 # Configure according to the environment file
@@ -20,7 +22,6 @@ app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
 app.config["SECRET_KEY"] = getenv("SECRET_KEY")
 
 # Define the database location for the app
-#app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///ville"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
