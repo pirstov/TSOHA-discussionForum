@@ -17,9 +17,9 @@ The target is to implement at least the properties listed in the course git hub 
 Current status, as of 26th of September
 ---------------------------------------
 Of the above requirements,
-1. Partially implemented. For example, checking of log in credentials and whether selected username is already in use are still to be implemented.
+1. An initial implementation is complete.
 2. An initial implementation is complete.
-3. TBD, not yet implemented
+3. An initial implementation is complete.
 4. TBD, not yet implemented
 5. TBD, not yet implemented
 6. TBD, not yet implemented

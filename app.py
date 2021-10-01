@@ -107,6 +107,25 @@ def section(id):
 	threads = result.fetchall()
 	return render_template("section.html", id = id, threads = threads)
 
+# Thread creation page
+@app.route("/section/<id>/createthread")
+def createthread(id):
+	return render_template("createthread.html", id = id)
+
+# Posting the thread to the database
+@app.route("/section/<id>/post_thread", methods = ["POST"])
+def post_thread(id):
+	threadTitle = request.form["threadTitle"]
+	message = request.form["content"]
+
+	# Insert thread into database
+	sql = "INSERT INTO threads (posting_time, section_id, thread_name, content) VALUES (NOW(), :id, :threadTitle, :message) RETURNING id"
+	result = db.session.execute(sql, {"id":id, "threadTitle":threadTitle, "message":message})
+	db.session.commit()
+	thread_id = result.fetchone()[0]
+
+	return redirect("/section/" + str(id) + "/" + str(thread_id))
+
 # Pages for different threads
 @app.route("/section/<id>/<thread_id>")
 def thread(id, thread_id):
