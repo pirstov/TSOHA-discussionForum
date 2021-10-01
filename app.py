@@ -47,34 +47,47 @@ def createaccount():
 	# generate the hash for the password directly
 	password = generate_password_hash(request.form["password"])
 
-	# ----------------------------------
-	# TBD: implement functionality to check if the username is already in use
-	# ----------------------------------
+	# Check if the username is already in use
+	sql = "SELECT count(*) FROM users WHERE username = :username"
+	result = db.session.execute(sql, {"username":username})
+	usernameAvailable = result.fetchone()["count"] == 0
 
-	# Insert the new user into the appropriate database table
-	sql = "INSERT INTO users (username, password) VALUES (:username, :password)"
-	db.session.execute(sql, {"username":username, "password":password})
-	db.session.commit()
+	if usernameAvailable:
+		# Insert the new user into the appropriate database table
+		sql = "INSERT INTO users (username, password) VALUES (:username, :password)"
+		db.session.execute(sql, {"username":username, "password":password})
+		db.session.commit()
 
-	return redirect("/")
+		# Return to the front page
+		return redirect("/")
+	else:
+		# refresh the account creation page with an error message
+		return redirect("/register")
 
 # Log in page
 @app.route("/loginpage")
 def loginpage():
-	return render_template("loginpage.html")
+	return render_template("loginpage.html", error=None)
 
 # Log in information processing
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=['POST'])
 def login():
+
 	username = request.form["username"]
 	password = request.form["password"]
 
-	# ------------------------------------------
-	# TBD: implement validity check of the input
-	# ------------------------------------------
+	# Check the validity of the input
+	sql = "SELECT id, password FROM users WHERE username =:username"
+	result = db.session.execute(sql, {"username": username})
+	user = result.fetchone()
 
-	session["username"] = username
-	return redirect("/")
+	#print(user)
+	if not user:
+		error = "Invalid username"
+		return render_template("loginpage.html", error=error)
+	else:
+		session["username"] = username
+		return redirect("/")
 
 # Log out processing
 @app.route("/logout")
