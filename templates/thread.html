@@ -1,7 +1,8 @@
 THREAD NAME
 <hr>
-<!--{% for message in messages %}-->
-<!-- TBD: Implement presenting messages within a thread -->
-<!-- TBD: Implement possibility to create replies to a thread -->
+{% for message in messages %}
+Posting time: {{ message["posting_time"].strftime("%Y-%m-%d %H:%M:%S") }}
+<br>
+{{ message["content"] }}
 <hr>
-<!--{% endfor %}->
+{% endfor %}

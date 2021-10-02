@@ -132,4 +132,8 @@ def thread(id, thread_id):
 	# -------------------------------------------
 	# TBD: Implement presenting each thread as a chain of messages
 	# -------------------------------------------
-	return render_template("thread.html")
+	sql = "SELECT posting_time, content FROM messages WHERE thread_id = :thread_id ORDER BY posting_time DESC"
+	result = db.session.execute(sql, {"thread_id": thread_id})
+	messages = result.fetchall()
+
+	return render_template("thread.html", messages = messages)
