@@ -5,6 +5,7 @@
 {% for thread in threads %}
 <a href="/section/{{ id }}/{{ thread.id }}">{{ thread.thread_name }}</a> <br>
 Created: {{ thread.posting_time.strftime("%Y-%m-%d %H:%M:%S") }} <br>
+Posted by: {{ thread.username }} <br>
 Number of replies: TBD <br>
 <hr>
 {% endfor %}

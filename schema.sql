@@ -23,4 +23,4 @@ CREATE TABLE messages (id SERIAL PRIMARY KEY, posting_time TIMESTAMP, user_id IN
 INSERT INTO messages (posting_time, user_id, thread_id, content) VALUES (NOW(), 1, 1, 'This is a message');
 INSERT INTO messages (posting_time, user_id, thread_id, content) VALUES (NOW(), 2, 1, 'Another message!');
 INSERT INTO messages (posting_time, user_id, thread_id, content) VALUES (NOW(), 2, 2, 'WOW, new thread!');
-INSERT INTO messages (posting_time, user_id, thread_id, content) VALUES (NOW(), 1, 3, 'WOW, thread in another section!');
+INSERT INTO messages (posting_time, user_id, thread_id, content) VALUES (NOW(), 1, 2, 'WOW, thread in another section!');
