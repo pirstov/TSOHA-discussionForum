@@ -14,13 +14,13 @@ The target is to implement at least the properties listed in the course git hub 
 8. The user with moderation rights can create a private discussion area and define, which users have access to it.
 
 ---------------------------------------
-Current status, as of 26th of September
+Current status, as of 2nd of October
 ---------------------------------------
 Of the above requirements,
 1. An initial implementation is complete.
 2. An initial implementation is complete.
 3. An initial implementation is complete.
-4. TBD, not yet implemented
+4. An initial implementation is complete.
 5. TBD, not yet implemented
 6. TBD, not yet implemented
 7. TBD, not yet implemented

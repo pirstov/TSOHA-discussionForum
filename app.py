@@ -129,11 +129,25 @@ def post_thread(id):
 # Pages for different threads
 @app.route("/section/<id>/<thread_id>")
 def thread(id, thread_id):
-	# -------------------------------------------
-	# TBD: Implement presenting each thread as a chain of messages
-	# -------------------------------------------
-	sql = "SELECT posting_time, content FROM messages WHERE thread_id = :thread_id ORDER BY posting_time DESC"
+	sql = "SELECT M.posting_time, M.content, T.thread_name FROM messages M LEFT JOIN threads T" \
+	      " ON M.thread_id = T.id WHERE M.thread_id = :thread_id ORDER BY posting_time ASC"
 	result = db.session.execute(sql, {"thread_id": thread_id})
 	messages = result.fetchall()
 
-	return render_template("thread.html", messages = messages)
+	return render_template("thread.html", messages = messages, id=id, thread_id = thread_id)
+
+# Page for writing a reply to a thread
+@app.route("/section/<id>/<thread_id>/reply")
+def reply(id, thread_id):
+	return render_template("reply.html", id=id, thread_id=id)
+
+# Processing of the reply written to a thread
+@app.route("/section/<id>/<thread_id>/post_reply", methods = ["POST"])
+def post_reply(id, thread_id):
+	content = request.form["content"]
+
+	sql = "INSERT INTO messages (posting_time, thread_id, content) VALUES (NOW(), :thread_id, :content)"
+	db.session.execute(sql, {"thread_id": thread_id, "content": content})
+	db.session.commit()
+
+	return redirect("/section/" + str(id) + "/" + str(thread_id))
