@@ -130,8 +130,8 @@ def post_thread(id):
 # Pages for different threads
 @app.route("/section/<id>/<thread_id>")
 def thread(id, thread_id):
-	sql = "SELECT M.posting_time, M.content, T.thread_name FROM messages M LEFT JOIN threads T" \
-	      " ON M.thread_id = T.id WHERE M.thread_id = :thread_id ORDER BY posting_time ASC"
+	sql = "SELECT M.posting_time, M.content, T.thread_name, U.username FROM threads T LEFT JOIN messages M" \
+	      " ON M.thread_id = T.id LEFT JOIN users U ON U.id = M.user_id WHERE M.thread_id = :thread_id ORDER BY posting_time ASC"
 	result = db.session.execute(sql, {"thread_id": thread_id})
 	messages = result.fetchall()
 

@@ -1,8 +1,10 @@
 <b>{{ messages[0]["thread_name"] }}</b>    
 <a href="/section/{{id}}/{{thread_id}}/reply">Reply</a> 
-<br style="margin-bottom:0.5cm" >
+<br style="margin-bottom:0.25cm" >
 {% for message in messages %}
-Posting time: {{ message["posting_time"].strftime("%Y-%m-%d %H:%M:%S") }}
+Posting time: {{ message["posting_time"].strftime("%Y-%m-%d %H:%M:%S") }} 
+<br>
+Posted by: {{ message.username }}
 <br>
 {{ message["content"] }}
 <hr>
