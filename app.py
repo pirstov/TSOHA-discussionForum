@@ -103,7 +103,7 @@ def section(id):
 	# TBD: Implement counting of messages within each thread
 	# -----------------------------------------------
 	sql = "SELECT T.id, T.posting_time, T.thread_name, S.section_name, U.username FROM sections S LEFT JOIN threads T"\
-	" ON T.section_id = S.id  LEFT JOIN users U ON T.user_id = U.id WHERE section_id=:id"
+	" ON T.section_id = S.id  LEFT JOIN users U ON T.user_id = U.id WHERE section_id=:id ORDER BY T.posting_time DESC"
 	result = db.session.execute(sql, {"id": id})
 	threads = result.fetchall()
 	return render_template("section.html", id = id, threads = threads)
