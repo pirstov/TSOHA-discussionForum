@@ -119,9 +119,14 @@ def post_thread(id):
 	threadTitle = request.form["threadTitle"]
 	message = request.form["content"]
 
+	# Query for the user id
+	sql = "SELECT id FROM users WHERE username=:username"
+	result = db.session.execute(sql, {"username": session["username"]})
+	user_id = result.fetchone()["id"]
+
 	# Insert thread into database
-	sql = "INSERT INTO threads (posting_time, section_id, thread_name, content) VALUES (NOW(), :id, :threadTitle, :message) RETURNING id"
-	result = db.session.execute(sql, {"id":id, "threadTitle":threadTitle, "message":message})
+	sql = "INSERT INTO threads (posting_time, user_id, section_id, thread_name, content) VALUES (NOW(), :user_id, :id, :threadTitle, :message) RETURNING id"
+	result = db.session.execute(sql, {"user_id":user_id, "id":id, "threadTitle":threadTitle, "message":message})
 	db.session.commit()
 	thread_id = result.fetchone()[0]
 
@@ -130,17 +135,23 @@ def post_thread(id):
 # Pages for different threads
 @app.route("/section/<id>/<thread_id>")
 def thread(id, thread_id):
-	sql = "SELECT M.posting_time, M.content, T.thread_name, U.username FROM threads T LEFT JOIN messages M" \
-	      " ON M.thread_id = T.id LEFT JOIN users U ON U.id = M.user_id WHERE M.thread_id = :thread_id ORDER BY posting_time ASC"
+	# Query for the thread name and content
+	sql = "SELECT T.thread_name, T.posting_time, T.content, U.username FROM threads T LEFT JOIN users U ON T.user_id = U.id WHERE T.id=:thread_id"
+	result = db.session.execute(sql, {"thread_id":thread_id})
+	thread = result.fetchone()
+
+	# Query for the messages posted in the thread
+	sql = "SELECT M.posting_time, M.content, U.username FROM messages M" \
+	      " LEFT JOIN users U ON U.id = M.user_id WHERE M.thread_id = :thread_id ORDER BY posting_time ASC"
 	result = db.session.execute(sql, {"thread_id": thread_id})
 	messages = result.fetchall()
 
-	return render_template("thread.html", messages = messages, id=id, thread_id = thread_id)
+	return render_template("thread.html", messages = messages, id=id, thread_id = thread_id, thread = thread)
 
 # Page for writing a reply to a thread
 @app.route("/section/<id>/<thread_id>/reply")
 def reply(id, thread_id):
-	return render_template("reply.html", id=id, thread_id=id)
+	return render_template("reply.html", id=id, thread_id=thread_id)
 
 # Processing of the reply written to a thread
 @app.route("/section/<id>/<thread_id>/post_reply", methods = ["POST"])
@@ -152,8 +163,11 @@ def post_reply(id, thread_id):
 	result = db.session.execute(sql, {"username": session["username"]})
 	user_id = result.fetchone()["id"]
 
+	# Insert the reply into the database
 	sql = "INSERT INTO messages (posting_time, user_id, thread_id, content) VALUES (NOW(), :user_id, :thread_id, :content)"
 	db.session.execute(sql, {"user_id": user_id, "thread_id": thread_id, "content": content})
 	db.session.commit()
+
+	print(thread_id)
 
 	return redirect("/section/" + str(id) + "/" + str(thread_id))

@@ -1,6 +1,13 @@
 <b>{{ threads[0]["section_name"] }}</b>
 <br>
-<a href="/section/{{id}}/createthread">Create thread</a> 
+
+{% if session.username %}
+<a href="/section/{{id}}/createthread">Create thread</a>  
+{% else %}
+<a href="/loginpage">Log in</a> to create a thread
+{% endif %} 
+
+
 <hr>
 {% for thread in threads %}
 <a href="/section/{{ id }}/{{ thread.id }}">{{ thread.thread_name }}</a> <br>

@@ -1,17 +1,24 @@
-<b>{{ messages[0]["thread_name"] }}</b>
+<b>{{ thread.thread_name }}</b><br>
+
+<i>Posting time:</i> {{ thread.posting_time.strftime("%Y-%m-%d %H:%M:%S") }} 
+<br>
+<i>Posted by:</i> {{ thread.username }}
+<br>
+{{ thread.content }}
+<hr>
 
 {% if session.username %}
 <a href="/section/{{id}}/{{thread_id}}/reply">Reply</a> 
 {% else %}
 <a href="/loginpage">Log in</a> to reply
-{% endif %} 
+{% endif %}
+<hr>
 
-<br style="margin-bottom:0.25cm" >
 {% for message in messages %}
-Posting time: {{ message["posting_time"].strftime("%Y-%m-%d %H:%M:%S") }} 
+<i>Posting time:</i> {{ message["posting_time"].strftime("%Y-%m-%d %H:%M:%S") }} 
 <br>
-Posted by: {{ message.username }}
+<i>Posted by:</i> {{ message.username }}
 <br>
 {{ message["content"] }}
-<hr>
+<hr style="margin-bottom:0.1cm" >
 {% endfor %}
