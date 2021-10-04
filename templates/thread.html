@@ -1,5 +1,11 @@
-<b>{{ messages[0]["thread_name"] }}</b>    
+<b>{{ messages[0]["thread_name"] }}</b>
+
+{% if session.username %}
 <a href="/section/{{id}}/{{thread_id}}/reply">Reply</a> 
+{% else %}
+<a href="/loginpage">Log in</a> to reply
+{% endif %} 
+
 <br style="margin-bottom:0.25cm" >
 {% for message in messages %}
 Posting time: {{ message["posting_time"].strftime("%Y-%m-%d %H:%M:%S") }} 

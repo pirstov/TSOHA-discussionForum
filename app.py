@@ -147,8 +147,13 @@ def reply(id, thread_id):
 def post_reply(id, thread_id):
 	content = request.form["content"]
 
-	sql = "INSERT INTO messages (posting_time, thread_id, content) VALUES (NOW(), :thread_id, :content)"
-	db.session.execute(sql, {"thread_id": thread_id, "content": content})
+	# Query for the user id
+	sql = "SELECT id FROM users WHERE username=:username"
+	result = db.session.execute(sql, {"username": session["username"]})
+	user_id = result.fetchone()["id"]
+
+	sql = "INSERT INTO messages (posting_time, user_id, thread_id, content) VALUES (NOW(), :user_id, :thread_id, :content)"
+	db.session.execute(sql, {"user_id": user_id, "thread_id": thread_id, "content": content})
 	db.session.commit()
 
 	return redirect("/section/" + str(id) + "/" + str(thread_id))
