@@ -1,4 +1,8 @@
-<b>{{ thread.thread_name }}</b><br>
+<b>{{ thread.thread_name }}</b>
+{% if session.username == thread.username %}
+<a href="/section/{{id}}/{{thread_id}}/edit_thread">Edit</a>
+{% endif %}
+<br>
 
 <i>Posting time:</i> {{ thread.posting_time.strftime("%Y-%m-%d %H:%M:%S") }} 
 <br>

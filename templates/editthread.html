@@ -1,0 +1,10 @@
+<b>Edit thread</b>
+<form action="/section/{{ id }}/{{ thread_id }}/post_thread_edit" method ="POST">
+<p>Thread title:<br>
+<input type="text" name="threadTitle" value = "{{thread.thread_name}}"></p>
+Content: <br>
+<textarea name="content" rows="3" cols="40">{{thread.content}}</textarea>
+<br>
+<input type="submit" value="Post">
+</form>
+    

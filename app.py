@@ -99,14 +99,19 @@ def logout():
 # Pages for different sections
 @app.route("/section/<id>")
 def section(id):
-	# -----------------------------------------------
-	# TBD: Implement counting of messages within each thread
-	# -----------------------------------------------
-	sql = "SELECT T.id, T.posting_time, T.thread_name, S.section_name, U.username FROM sections S LEFT JOIN threads T"\
-	" ON T.section_id = S.id  LEFT JOIN users U ON T.user_id = U.id WHERE section_id=:id ORDER BY T.posting_time DESC"
+
+	# Query for the section name based on the id
+	sql = "SELECT section_name FROM sections WHERE id=:id"
+	result = db.session.execute(sql, {"id":id})
+	section_name = result.fetchone().section_name
+
+	# Query for the thread id, posting time, thread name, and username of the poster for each thread
+	sql = "SELECT T.id, T.posting_time, T.thread_name, U.username FROM threads T"\
+	" LEFT JOIN users U ON T.user_id = U.id WHERE T.section_id=:id ORDER BY T.posting_time DESC"
 	result = db.session.execute(sql, {"id": id})
 	threads = result.fetchall()
-	return render_template("section.html", id = id, threads = threads)
+	
+	return render_template("section.html", id = id, threads = threads, section_name = section_name)
 
 # Thread creation page
 @app.route("/section/<id>/createthread")
@@ -169,5 +174,30 @@ def post_reply(id, thread_id):
 	db.session.commit()
 
 	print(thread_id)
+
+	return redirect("/section/" + str(id) + "/" + str(thread_id))
+
+
+# Editing a thread
+@app.route("/section/<id>/<thread_id>/edit_thread")
+def edit_thread(id, thread_id):
+	# Query for the thread name and content
+	sql = "SELECT thread_name, content FROM threads where id=:thread_id"
+	result = db.session.execute(sql, {"thread_id":thread_id})
+	thread = result.fetchone()
+
+	print(thread.thread_name)
+
+	return render_template("editthread.html", id = id, thread_id = thread_id, thread = thread)
+
+
+@app.route("/section/<id>/<thread_id>/post_thread_edit", methods = ["POST"])
+def post_thread_edits(id, thread_id):
+	thread_name = request.form["threadTitle"]
+	content     = request.form["content"]
+	# Update the database table for threads accordingly
+	sql = "UPDATE threads SET thread_name=:thread_name, content=:content WHERE id=:thread_id"
+	db.session.execute(sql, {"thread_name":thread_name, "content":content, "thread_id":thread_id})
+	db.session.commit()
 
 	return redirect("/section/" + str(id) + "/" + str(thread_id))
