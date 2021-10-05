@@ -107,7 +107,7 @@ def section(id):
 
 	# Query for the thread id, posting time, thread name, and username of the poster for each thread
 	sql = "SELECT T.id, T.posting_time, T.thread_name, U.username FROM threads T"\
-	" LEFT JOIN users U ON T.user_id = U.id WHERE T.section_id=:id ORDER BY T.posting_time DESC"
+	" LEFT JOIN users U ON T.user_id = U.id WHERE T.section_id=:id AND T.visible=true ORDER BY T.posting_time DESC"
 	result = db.session.execute(sql, {"id": id})
 	threads = result.fetchall()
 	
@@ -147,7 +147,7 @@ def thread(id, thread_id):
 
 	# Query for the messages posted in the thread
 	sql = "SELECT M.id, M.posting_time, M.content, U.username FROM messages M" \
-	      " LEFT JOIN users U ON U.id = M.user_id WHERE M.thread_id = :thread_id ORDER BY posting_time ASC"
+	      " LEFT JOIN users U ON U.id = M.user_id WHERE M.thread_id=:thread_id AND M.visible=true ORDER BY posting_time ASC"
 	result = db.session.execute(sql, {"thread_id": thread_id})
 	messages = result.fetchall()
 
@@ -220,3 +220,22 @@ def post_message_edit(id, thread_id, message_id):
 	db.session.commit()
 
 	return redirect("/section/" + str(id) + "/" + str(thread_id))
+
+# Deleting a message in a thread
+@app.route("/section/<id>/<thread_id>/<message_id>/delete_message")
+def delete_message(id, thread_id, message_id):
+	sql = "UPDATE messages SET visible=false WHERE id=:message_id"
+	db.session.execute(sql, {"message_id": message_id})
+	db.session.commit()
+
+	return redirect("/section/" + str(id) + "/" + str(thread_id))
+
+
+# Deleting a thread and all its associated messages
+@app.route("/section/<id>/<thread_id>/delete_thread")
+def delete_thread(id, thread_id):
+	# -----------------------------
+	# TBD: set visibility of all messages within the thread to 0
+	# and set the visibility of the thread to 0
+	# -----------------------------
+	pass

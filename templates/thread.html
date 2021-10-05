@@ -1,6 +1,7 @@
 <b>{{ thread.thread_name }}</b>
 {% if session.username == thread.username %}
-<a href="/section/{{id}}/{{thread_id}}/edit_thread">Edit</a>
+<a href="/section/{{id}}/{{thread_id}}/edit_thread">Edit thread</a>
+<a href="/section/{{id}}/{{thread_id}}/delete_thread">Delete thread</a>
 {% endif %}
 <br>
 
@@ -24,7 +25,8 @@
 <i>Posted by:</i> {{ message.username }}
 <br>
 {% if session.username == message.username %}
-<a href="/section/{{id}}/{{thread_id}}/{{message.id}}/edit_message">Edit</a>
+<a href="/section/{{id}}/{{thread_id}}/{{message.id}}/edit_message">Edit message</a>
+<a href="/section/{{id}}/{{thread_id}}/{{message.id}}/delete_message">Delete message</a>
 <br>
 {% endif %}
 {{ message["content"] }}
