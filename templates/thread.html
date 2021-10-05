@@ -23,6 +23,10 @@
 <br>
 <i>Posted by:</i> {{ message.username }}
 <br>
+{% if session.username == message.username %}
+<a href="/section/{{id}}/{{thread_id}}/{{message.id}}/edit_message">Edit</a>
+<br>
+{% endif %}
 {{ message["content"] }}
 <hr style="margin-bottom:0.1cm" >
 {% endfor %}

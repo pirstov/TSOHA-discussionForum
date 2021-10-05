@@ -146,7 +146,7 @@ def thread(id, thread_id):
 	thread = result.fetchone()
 
 	# Query for the messages posted in the thread
-	sql = "SELECT M.posting_time, M.content, U.username FROM messages M" \
+	sql = "SELECT M.id, M.posting_time, M.content, U.username FROM messages M" \
 	      " LEFT JOIN users U ON U.id = M.user_id WHERE M.thread_id = :thread_id ORDER BY posting_time ASC"
 	result = db.session.execute(sql, {"thread_id": thread_id})
 	messages = result.fetchall()
@@ -186,18 +186,37 @@ def edit_thread(id, thread_id):
 	result = db.session.execute(sql, {"thread_id":thread_id})
 	thread = result.fetchone()
 
-	print(thread.thread_name)
-
 	return render_template("editthread.html", id = id, thread_id = thread_id, thread = thread)
 
-
+# Updating the thread database according to the edits
 @app.route("/section/<id>/<thread_id>/post_thread_edit", methods = ["POST"])
-def post_thread_edits(id, thread_id):
+def post_thread_edit(id, thread_id):
 	thread_name = request.form["threadTitle"]
 	content     = request.form["content"]
-	# Update the database table for threads accordingly
+	# Update the thread database table accordingly
 	sql = "UPDATE threads SET thread_name=:thread_name, content=:content WHERE id=:thread_id"
 	db.session.execute(sql, {"thread_name":thread_name, "content":content, "thread_id":thread_id})
+	db.session.commit()
+
+	return redirect("/section/" + str(id) + "/" + str(thread_id))
+
+# Editing a message in a thread
+@app.route("/section/<id>/<thread_id>/<message_id>/edit_message")
+def edit_message(id, thread_id, message_id):
+	# Query for the message and content
+	sql = "SELECT content FROM messages WHERE id=:message_id"
+	result = db.session.execute(sql, {"message_id": message_id})
+	message = result.fetchone()
+
+	return render_template("editmessage.html", id=id, thread_id = thread_id, message_id = message_id, message = message)
+
+# Updating the message database according to the edits
+@app.route("/section/<id>/<thread_id>/<message_id>/post_message_edit", methods = ["POST"])
+def post_message_edit(id, thread_id, message_id):
+	content = request.form["content"]
+	# Update the message database table accordingly
+	sql = "UPDATE messages SET content=:content WHERE id=:message_id"
+	db.session.execute(sql, {"content":content, "message_id":message_id})
 	db.session.commit()
 
 	return redirect("/section/" + str(id) + "/" + str(thread_id))
