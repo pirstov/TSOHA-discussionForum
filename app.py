@@ -234,8 +234,15 @@ def delete_message(id, thread_id, message_id):
 # Deleting a thread and all its associated messages
 @app.route("/section/<id>/<thread_id>/delete_thread")
 def delete_thread(id, thread_id):
-	# -----------------------------
-	# TBD: set visibility of all messages within the thread to 0
-	# and set the visibility of the thread to 0
-	# -----------------------------
-	pass
+
+	# Set the visibility of every message in the thread to false
+	sql = "UPDATE messages SET visible=false WHERE thread_id=:thread_id"
+	db.session.execute(sql, {"thread_id":thread_id})
+	db.session.commit()
+
+	# Set the visibility of the thread to false
+	sql = "UPDATE threads SET visible=false WHERE id=:thread_id"
+	db.session.execute(sql, {"thread_id":thread_id})
+	db.session.commit()
+
+	return redirect("/section/" + str(id))
