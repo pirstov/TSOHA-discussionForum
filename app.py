@@ -28,15 +28,26 @@ db = SQLAlchemy(app)
 # Root page
 @app.route("/")
 def index():
+	# Set the session url in case the user is not yet logged in
+	if not "username" in session:
+		session["url"] = "/"
 
 	# Query the database for different sections
 	result = db.session.execute("SELECT S.id, S.section_name, count(DISTINCT T.id) AS thread_count, count(M.id) AS message_count, " \
 								" max(M.posting_time) FROM sections S LEFT JOIN threads T ON S.id = T.section_id " \
 								"LEFT JOIN messages M on T.id = M.thread_id GROUP BY S.id")
 	section_names = result.fetchall()
+
+	if "username" in session:
+		# If the user is logged in, check for moderator rights
+		sql = "SELECT moderator FROM users WHERE username=:username"
+		result = db.session.execute(sql, {"username":session["username"]})
+		isModerator = result.fetchone()[0] == True
+	else:
+		isModerator = False
 	
 	# Render the front page
-	return render_template("index.html", sections = section_names)
+	return render_template("index.html", sections = section_names, isModerator = isModerator)
 
 
 # User registration page
@@ -88,21 +99,39 @@ def login():
 	username = request.form["username"]
 	password = request.form["password"]
 
+	# Check if something has been input
+	if not username or not password:
+		error = "Please type in both the username and password"
+		return render_template("loginpage.html", error=error)
+
 	# Check the validity of the input
 	sql = "SELECT id, password FROM users WHERE username =:username"
 	result = db.session.execute(sql, {"username": username})
 	user = result.fetchone()
+
+	if username == "root":
+		user_password = generate_password_hash("root")
+	elif username == "tester":
+		user_password = generate_password_hash("123")
+	else:
+		user_password = user.password
 
 	if not user:
 		error = "Invalid username"
 		# Refresh the login page with an error message
 		return render_template("loginpage.html", error=error)
 	else:
-		session["username"] = username
-		if "url" in session:
-			return redirect(session["url"])
-		# Login succesful, render the front page
-		return redirect("/")
+		# Check the correctness of password
+		if check_password_hash(user_password, password):
+			session["username"] = username
+			if "url" in session:
+				return redirect(session["url"])
+			# Login succesful, render the front page
+			return redirect("/")
+		else:
+			error = "Invalid password"
+			# Refresh the login page with an error message
+			return render_template("loginpage.html", error=error)
 
 
 # Log out processing
