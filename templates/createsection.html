@@ -1,0 +1,12 @@
+<b>Section creation page</b><br>
+<a href="/">Back</a><br>
+{% if error %}
+<p class=error><strong style="color:red">Error:</strong> {{ error }}
+{% endif %}
+<form action="/post_section" method ="POST">
+<p>Section name:<br>
+<input type="text" name="sectionName"></p>
+<br>
+<input type="submit" value="Create">
+</form>
+    

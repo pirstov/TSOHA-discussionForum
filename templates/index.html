@@ -15,7 +15,11 @@
 
 <!-- Log in / log out possibility -->
 {% if session.username %}
-<p>You are logged in as {{ session.username }}</p>
+<p>You are logged in as {{ session.username }}
+    {% if isModerator %}
+    (Moderator)
+    {% endif %}
+</p>
 <a href="/logout">Log out</a>
 
 {% else %}
@@ -25,10 +29,20 @@
 <a href="/register">Create account</a>
 {% endif %}
 
+<!-- For moderators: creation of additional sections -->
+{% if isModerator %}
+    <hr>
+    <a href="/createsection">Create section</a>
+{% endif %}
+
 <!-- For displaying the current sections in the forum -->
 <hr>
 {% for section in sections %}
-<a href="/section/{{ section.id }}">{{ section.section_name }}</a><br>
+<a href="/section/{{ section.id }}">{{ section.section_name }}</a>
+{% if isModerator %}
+<span style="float: right">(<a href="/deletesection/{{ section.id }}">Delete section</a>)</span>
+{% endif %}
+<br>
 Number of threads: {{ section.thread_count }} <br>
 Number of messages: {{ section.message_count }}<br>
 Time stamp of the latest message: 

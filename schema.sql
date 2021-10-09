@@ -2,12 +2,12 @@
 
 
 /* Table for storing users */
-CREATE TABLE users (id SERIAL PRIMARY KEY, username TEXT, password TEXT);
-INSERT INTO users (username, password) VALUES ('root', 'root');
+CREATE TABLE users (id SERIAL PRIMARY KEY, username TEXT, password TEXT, moderator BOOLEAN DEFAULT false);
+INSERT INTO users (username, password, moderator) VALUES ('root', 'root', true);
 INSERT INTO users (username, password) VALUES ('tester', '123');
 
 /* Table for sections */
-CREATE TABLE sections(id SERIAL PRIMARY KEY, section_name TEXT);
+CREATE TABLE sections(id SERIAL PRIMARY KEY, section_name TEXT, visible BOOLEAN DEFAULT true);
 /* Create an example for testing purposes */
 INSERT INTO sections (section_name) VALUES ('Nalle-osio');
 
