@@ -1,0 +1,7 @@
+<p>Query results:</p>
+<hr>
+{% for message in messages %}
+<i>Message: </i>{{ message.content }}<br>
+<i>In thread: </i><a href="/section/{{ message.section_id }}/{{ message.thread_id }}">{{ message.thread_name }}</a> <br>
+<hr>
+{% endfor %}

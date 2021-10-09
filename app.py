@@ -298,10 +298,17 @@ def delete_thread(id, thread_id):
 
 
 # Processing of search results 
-@app.route("/result" method="GET")
+@app.route("/result", methods=["GET"])
 def result():
 
-	query = request.args["query"]
+	query = request.args["query"].lower()
 
 	# Search for messages containing the queried string
-	pass
+	sql = "SELECT M.content, S.id AS section_id, T.id AS thread_id, T.thread_name FROM sections S " \
+	      " LEFT JOIN threads T ON S.id=T.section_id LEFT JOIN messages M" \
+	      " ON T.id = M.thread_id WHERE lower(M.content) LIKE :query"
+	result = db.session.execute(sql, {"query": "%"+query+"%"})
+	messages = result.fetchall()
+
+	# Render a page for the query results
+	return render_template("result.html", messages=messages)

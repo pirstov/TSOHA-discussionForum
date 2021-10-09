@@ -1,5 +1,14 @@
-<b>{{ section_name }}</b>
-<br>
+<h1>{{ section_name }}</h1>
+
+<!-- Search functionality -->
+<hr>
+<form action="/result" method="GET">
+    <p> Search the forum: <input type = "text" name ="query">
+    <br>
+    <input type ="submit" value="Search"></p>
+</form>
+<hr>
+
 
 {% if session.username %}
 <a href="/section/{{id}}/createthread">Create thread</a>  

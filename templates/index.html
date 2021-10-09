@@ -3,6 +3,15 @@
 <h1>The forum</h1>
 <h2>A place for discussion</h2>
 
+<!-- Search functionality -->
+<hr>
+<form action="/result" method="GET">
+    <p> Search the forum: <input type = "text" name ="query">
+    <br>
+    <input type ="submit" value="Search"></p>
+</form>
+<hr>
+
 <!-- Log in / log out possibility -->
 {% if session.username %}
 <p>You are logged in as {{ session.username }}</p>
