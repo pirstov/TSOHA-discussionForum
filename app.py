@@ -99,6 +99,8 @@ def login():
 		return render_template("loginpage.html", error=error)
 	else:
 		session["username"] = username
+		if "url" in session:
+			return redirect(session["url"])
 		# Login succesful, render the front page
 		return redirect("/")
 
@@ -116,6 +118,9 @@ def logout():
 # Pages for different sections
 @app.route("/section/<id>")
 def section(id):
+	# Set the session url in case the user is not yet logged in
+	if not "username" in session:
+		session["url"] = "/section/" + str(id)
 
 	# Query for the section name based on the id
 	sql = "SELECT section_name FROM sections WHERE id=:id"
@@ -165,6 +170,9 @@ def post_thread(id):
 # Pages for different threads
 @app.route("/section/<id>/<thread_id>")
 def thread(id, thread_id):
+	# Set the session url in case the user is not yet logged in
+	if not "username" in session:
+		session["url"] = "/section/" + str(id) + "/" + str(thread_id)
 
 	# Query for the thread name and content
 	sql = "SELECT T.thread_name, T.posting_time, T.content, U.username FROM threads T LEFT JOIN users U ON T.user_id = U.id WHERE T.id=:thread_id"
@@ -310,5 +318,17 @@ def result():
 	result = db.session.execute(sql, {"query": "%"+query+"%"})
 	messages = result.fetchall()
 
+	print(messages)
+
+	# Search for threads containing the queried string
+	sql = "SELECT id, section_id, thread_name, content FROM threads WHERE (lower(content) LIKE :query) OR (lower(thread_name) LIKE :query)"
+	result = db.session.execute(sql, {"query": "%"+query+"%"})
+	threads = result.fetchall()
+
 	# Render a page for the query results
-	return render_template("result.html", messages=messages)
+	return render_template("result.html", messages=messages, threads=threads)
+
+# A "return to previous page" functionality to enhance the browsing experience
+@app.route("/return")
+def return():
+	pass

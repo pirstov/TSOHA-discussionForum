@@ -1,7 +1,19 @@
 <p>Query results:</p>
 <hr>
+<hr>
+<b>Messages:</b><br>
 {% for message in messages %}
 <i>Message: </i>{{ message.content }}<br>
 <i>In thread: </i><a href="/section/{{ message.section_id }}/{{ message.thread_id }}">{{ message.thread_name }}</a> <br>
+<hr>
+{% endfor %}
+{% if not messages %}
+<hr>
+{% endif %}
+<hr>
+<b>Threads:</b><br>
+{% for thread in threads %}
+<i>Thread: </i><a href="/section/{{ thread.section_id }}/{{ thread.id }}">{{ thread.thread_name }}</a><br>
+<i>Content: </i>{{ thread.content }}<br>
 <hr>
 {% endfor %}

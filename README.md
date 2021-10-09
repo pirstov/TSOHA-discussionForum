@@ -20,7 +20,7 @@ Of the above requirements,
 3. An initial implementation is complete.
 4. An initial implementation is complete.
 5. An initial implementation is complete.
-6. TBD, not yet implemented
+6. An initial implementation is complete.
 7. TBD, not yet implemented
 8. TBD, not yet implemented.
 
