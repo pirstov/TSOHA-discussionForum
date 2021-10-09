@@ -1,4 +1,6 @@
-<b>{{ thread.thread_name }}</b>
+<h2>{{ thread.thread_name }}</h2>
+<a href="/section/{{id}}">Back</a>
+<hr>
 {% if session.username == thread.username %}
 <a href="/section/{{id}}/{{thread_id}}/edit_thread">Edit thread</a>
 <a href="/section/{{id}}/{{thread_id}}/delete_thread">Delete thread</a>

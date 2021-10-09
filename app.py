@@ -310,6 +310,7 @@ def delete_thread(id, thread_id):
 def result():
 
 	query = request.args["query"].lower()
+	prevURL = request.args["prevURL"]
 
 	# Search for messages containing the queried string
 	sql = "SELECT M.content, S.id AS section_id, T.id AS thread_id, T.thread_name FROM sections S " \
@@ -318,17 +319,10 @@ def result():
 	result = db.session.execute(sql, {"query": "%"+query+"%"})
 	messages = result.fetchall()
 
-	print(messages)
-
 	# Search for threads containing the queried string
 	sql = "SELECT id, section_id, thread_name, content FROM threads WHERE (lower(content) LIKE :query) OR (lower(thread_name) LIKE :query)"
 	result = db.session.execute(sql, {"query": "%"+query+"%"})
 	threads = result.fetchall()
 
 	# Render a page for the query results
-	return render_template("result.html", messages=messages, threads=threads)
-
-# A "return to previous page" functionality to enhance the browsing experience
-@app.route("/return")
-def return():
-	pass
+	return render_template("result.html", messages=messages, threads=threads, prevURL = prevURL)

@@ -1,9 +1,11 @@
 <h1>{{ section_name }}</h1>
+<a href="/">Back</a>
 
 <!-- Search functionality -->
 <hr>
 <form action="/result" method="GET">
     <p> Search the forum: <input type = "text" name ="query">
+    <input type="hidden" name="prevURL" value = {{ request.path }}>
     <br>
     <input type ="submit" value="Search"></p>
 </form>
