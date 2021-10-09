@@ -28,21 +28,29 @@ db = SQLAlchemy(app)
 # Root page
 @app.route("/")
 def index():
-	# Query the DB for different sections
+
+	# Query the database for different sections
 	result = db.session.execute("SELECT S.id, S.section_name, count(DISTINCT T.id) AS thread_count, count(M.id) AS message_count, " \
 								" max(M.posting_time) FROM sections S LEFT JOIN threads T ON S.id = T.section_id " \
 								"LEFT JOIN messages M on T.id = M.thread_id GROUP BY S.id")
 	section_names = result.fetchall()
+	
+	# Render the front page
 	return render_template("index.html", sections = section_names)
+
 
 # User registration page
 @app.route("/register")
 def register():
+
+	# Render the registration page
 	return render_template("register.html", error=None)
+
 
 # Account creation process
 @app.route("/createaccount", methods=["POST"])
 def createaccount():
+
 	username = request.form["username"]
 	# generate the hash for the password directly
 	password = generate_password_hash(request.form["password"])
@@ -65,10 +73,13 @@ def createaccount():
 		error = 'Username already in use!'
 		return render_template("register.html", error=error)
 
-# Log in page
+
+# Login page
 @app.route("/loginpage")
 def loginpage():
+	# Render the login page
 	return render_template("loginpage.html", error=None)
+
 
 # Log in information processing
 @app.route("/login", methods=['POST'])
@@ -82,19 +93,25 @@ def login():
 	result = db.session.execute(sql, {"username": username})
 	user = result.fetchone()
 
-	#print(user)
 	if not user:
 		error = "Invalid username"
+		# Refresh the login page with an error message
 		return render_template("loginpage.html", error=error)
 	else:
 		session["username"] = username
+		# Login succesful, render the front page
 		return redirect("/")
+
 
 # Log out processing
 @app.route("/logout")
 def logout():
+	
+	# Delete the current session
 	del session["username"]
+	# Render the front page
 	return redirect("/")
+
 
 # Pages for different sections
 @app.route("/section/<id>")
@@ -111,16 +128,22 @@ def section(id):
 	result = db.session.execute(sql, {"id": id})
 	threads = result.fetchall()
 	
+	# Render the appropriate section page
 	return render_template("section.html", id = id, threads = threads, section_name = section_name)
+
 
 # Thread creation page
 @app.route("/section/<id>/createthread")
 def createthread(id):
+	
+	# Render the thread creation page
 	return render_template("createthread.html", id = id)
+
 
 # Posting the thread to the database
 @app.route("/section/<id>/post_thread", methods = ["POST"])
 def post_thread(id):
+
 	threadTitle = request.form["threadTitle"]
 	message = request.form["content"]
 
@@ -135,11 +158,14 @@ def post_thread(id):
 	db.session.commit()
 	thread_id = result.fetchone()[0]
 
+	# Render the page for the created thread
 	return redirect("/section/" + str(id) + "/" + str(thread_id))
+
 
 # Pages for different threads
 @app.route("/section/<id>/<thread_id>")
 def thread(id, thread_id):
+
 	# Query for the thread name and content
 	sql = "SELECT T.thread_name, T.posting_time, T.content, U.username FROM threads T LEFT JOIN users U ON T.user_id = U.id WHERE T.id=:thread_id"
 	result = db.session.execute(sql, {"thread_id":thread_id})
@@ -151,16 +177,22 @@ def thread(id, thread_id):
 	result = db.session.execute(sql, {"thread_id": thread_id})
 	messages = result.fetchall()
 
+	# Render the appropriate thread page
 	return render_template("thread.html", messages = messages, id=id, thread_id = thread_id, thread = thread)
+
 
 # Page for writing a reply to a thread
 @app.route("/section/<id>/<thread_id>/reply")
 def reply(id, thread_id):
+
+	# Render the reply creation page
 	return render_template("reply.html", id=id, thread_id=thread_id)
+
 
 # Processing of the reply written to a thread
 @app.route("/section/<id>/<thread_id>/post_reply", methods = ["POST"])
 def post_reply(id, thread_id):
+
 	content = request.form["content"]
 
 	# Query for the user id
@@ -173,61 +205,77 @@ def post_reply(id, thread_id):
 	db.session.execute(sql, {"user_id": user_id, "thread_id": thread_id, "content": content})
 	db.session.commit()
 
-	print(thread_id)
-
+	# Return to the replied thread
 	return redirect("/section/" + str(id) + "/" + str(thread_id))
 
 
 # Editing a thread
 @app.route("/section/<id>/<thread_id>/edit_thread")
 def edit_thread(id, thread_id):
+
 	# Query for the thread name and content
 	sql = "SELECT thread_name, content FROM threads where id=:thread_id"
 	result = db.session.execute(sql, {"thread_id":thread_id})
 	thread = result.fetchone()
 
+	# Go to the thread editing page
 	return render_template("editthread.html", id = id, thread_id = thread_id, thread = thread)
+
 
 # Updating the thread database according to the edits
 @app.route("/section/<id>/<thread_id>/post_thread_edit", methods = ["POST"])
 def post_thread_edit(id, thread_id):
+
 	thread_name = request.form["threadTitle"]
 	content     = request.form["content"]
+	
 	# Update the thread database table accordingly
 	sql = "UPDATE threads SET thread_name=:thread_name, content=:content WHERE id=:thread_id"
 	db.session.execute(sql, {"thread_name":thread_name, "content":content, "thread_id":thread_id})
 	db.session.commit()
 
+	# Return to the edited thread
 	return redirect("/section/" + str(id) + "/" + str(thread_id))
+
 
 # Editing a message in a thread
 @app.route("/section/<id>/<thread_id>/<message_id>/edit_message")
 def edit_message(id, thread_id, message_id):
-	# Query for the message and content
+
+	# Query for the current content of the edited message
 	sql = "SELECT content FROM messages WHERE id=:message_id"
 	result = db.session.execute(sql, {"message_id": message_id})
 	message = result.fetchone()
 
+	# Go to the editing page
 	return render_template("editmessage.html", id=id, thread_id = thread_id, message_id = message_id, message = message)
+
 
 # Updating the message database according to the edits
 @app.route("/section/<id>/<thread_id>/<message_id>/post_message_edit", methods = ["POST"])
 def post_message_edit(id, thread_id, message_id):
+
 	content = request.form["content"]
+	
 	# Update the message database table accordingly
 	sql = "UPDATE messages SET content=:content WHERE id=:message_id"
 	db.session.execute(sql, {"content":content, "message_id":message_id})
 	db.session.commit()
 
+	# Return to the thread
 	return redirect("/section/" + str(id) + "/" + str(thread_id))
+
 
 # Deleting a message in a thread
 @app.route("/section/<id>/<thread_id>/<message_id>/delete_message")
 def delete_message(id, thread_id, message_id):
+
+	# Set the visibility of the deleted message to false
 	sql = "UPDATE messages SET visible=false WHERE id=:message_id"
 	db.session.execute(sql, {"message_id": message_id})
 	db.session.commit()
 
+	# Return to the thread
 	return redirect("/section/" + str(id) + "/" + str(thread_id))
 
 
@@ -245,4 +293,15 @@ def delete_thread(id, thread_id):
 	db.session.execute(sql, {"thread_id":thread_id})
 	db.session.commit()
 
+	# Return to the section of the deleted thread
 	return redirect("/section/" + str(id))
+
+
+# Processing of search results 
+@app.route("/result" method="GET")
+def result():
+
+	query = request.args["query"]
+
+	# Search for messages containing the queried string
+	pass
