@@ -33,9 +33,22 @@ def index():
 		session["url"] = "/"
 
 	# Query the database for different sections
-	result = db.session.execute("SELECT S.id, S.section_name, count(DISTINCT T.id) AS thread_count, count(M.id) AS message_count, " \
+	if "username" in session:
+		# Fetch the user id of the logged in user
+		sql = "SELECT id FROM users WHERE username=:username"
+		result = db.session.execute(sql, {"username":session["username"]})
+		user = result.fetchone()
+		# Query for the sections that are not private or private to which the user has privilege
+		sql = "SELECT S.id, S.section_name, S.private, count(DISTINCT T.id) AS thread_count, count(M.id) AS message_count, " \
+			  " max(M.posting_time) FROM sections S LEFT JOIN threads T ON S.id = T.section_id " \
+			  "LEFT JOIN messages M on T.id = M.thread_id WHERE S.visible=true "\
+			  "GROUP BY S.id HAVING (NOT S.private OR S.id IN (SELECT section_id FROM user_privileges WHERE user_id=:user_id))"
+		result = db.session.execute(sql, {"user_id":user.id})
+	else:
+		# The user is not logged in, fetch sections that are not private
+		result = db.session.execute("SELECT S.id, S.section_name, S.private, count(DISTINCT T.id) AS thread_count, count(M.id) AS message_count, " \
 								" max(M.posting_time) FROM sections S LEFT JOIN threads T ON S.id = T.section_id " \
-								"LEFT JOIN messages M on T.id = M.thread_id WHERE S.visible=true GROUP BY S.id")
+								"LEFT JOIN messages M on T.id = M.thread_id WHERE S.visible=true AND S.private=false GROUP BY S.id")
 	section_names = result.fetchall()
 
 	if "username" in session:
@@ -411,17 +424,17 @@ def post_section():
 	# sections is to be made private
 	make_private = len(makePrivate) == 1
 
-	sql = "INSERT INTO sections (section_name, private) VALUES (:section_name, :make_private)"
-	db.session.execute(sql, {"section_name": section_name, "make_private": make_private})
-	db.session.commit()
+	sql = "INSERT INTO sections (section_name, private) VALUES (:section_name, :make_private) RETURNING id"
+	result = db.session.execute(sql, {"section_name": section_name, "make_private": make_private})
+	section = result.fetchone()
 
 	# If the newly created section is private, grant the creator access to it
-	sql = "SELECT id FROM users WHERE username =: username"
+	sql = "SELECT id FROM users WHERE username=:username"
 	result = db.session.execute(sql, {"username": session["username"]})
 	user = result.fetchone()
 
-	sql = "INSERT INTO section_privileges (user_id) VALUES (:user_id)"
-	db.session.execute(sql, {"user_id":user.id})
+	sql = "INSERT INTO user_privileges (user_id, section_id) VALUES (:user_id, :section_id)"
+	db.session.execute(sql, {"user_id":user.id, "section_id":section.id})
 	db.session.commit()
 
 	return redirect("/")
@@ -436,4 +449,38 @@ def deletesection(section_id):
 	db.session.commit()
 	
 	# Render the front page
+	return redirect("/")
+
+# Granting a user moderator rights
+@app.route("/promoteuser")
+def promoteuser():
+
+	# Render the user promotion page
+	return render_template("promoteuser.html", error=None)
+
+# Applying the promotion to the user table
+@app.route("/applyPromotion", methods=["POST"])
+def applyPromotion():
+
+	username = request.form["username"]
+
+	# Check that something is typed in
+	if not username:
+		error = "Please type in a username"
+		return render_template("promoteuser.html", error=error)
+
+	# Check that the typed in string is an actual username
+	sql = "SELECT id FROM users WHERE username=:username"
+	result = db.session.execute(sql, {"username":username})
+	user = result.fetchone()
+
+	if not user:
+		error = "Username not found"
+		return render_template("promoteuser.html", error=error)
+
+	# A valid username is input, promote
+	sql = "UPDATE users SET moderator=true WHERE id=:user_id"
+	db.session.execute(sql, {"user_id": user.id})
+	db.session.commit()
+
 	return redirect("/")

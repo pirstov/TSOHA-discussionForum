@@ -7,9 +7,12 @@ INSERT INTO users (username, password, moderator) VALUES ('root', 'root', true);
 INSERT INTO users (username, password) VALUES ('tester', '123');
 
 /* Table for sections */
-CREATE TABLE sections(id SERIAL PRIMARY KEY, section_name TEXT, visible BOOLEAN DEFAULT true);
+CREATE TABLE sections(id SERIAL PRIMARY KEY, section_name TEXT, private BOOLEAN DEFAULT false, visible BOOLEAN DEFAULT true);
 /* Create an example for testing purposes */
 INSERT INTO sections (section_name) VALUES ('Nalle-osio');
+
+/* Table for storing user access rights to private sections */
+CREATE TABLE user_privileges(id SERIAL PRIMARY KEY, user_id INTEGER REFERENCES users, section_id INTEGER REFERENCES sections);
 
 /* Table for threads within sections */
 CREATE TABLE threads(id SERIAL PRIMARY KEY,  posting_time TIMESTAMP, user_id INTEGER REFERENCES users, section_id INTEGER REFERENCES sections, thread_name TEXT, content TEXT, visible BOOLEAN DEFAULT true);

@@ -18,6 +18,8 @@
 <p>You are logged in as {{ session.username }}
     {% if isModerator %}
     (Moderator)
+    <br>
+    <a href="/promoteuser">Grant moderator rights to a user</a>
     {% endif %}
 </p>
 <a href="/logout">Log out</a>
@@ -39,6 +41,9 @@
 <hr>
 {% for section in sections %}
 <a href="/section/{{ section.id }}">{{ section.section_name }}</a>
+{% if section.private %}
+ (Private)
+{% endif %}
 {% if isModerator %}
 <span style="float: right">(<a href="/deletesection/{{ section.id }}">Delete section</a>)</span>
 {% endif %}
@@ -46,10 +51,10 @@
 Number of threads: {{ section.thread_count }} <br>
 Number of messages: {{ section.message_count }}<br>
 Time stamp of the latest message: 
-{% if section.max == None %}
--
-{% else %}
+{% if section.max %}
 {{ section.max.strftime("%Y-%m-%d %H:%M:%S")}}
+{% else %}
+-
 {% endif %}
 <hr>
 {% endfor %}
