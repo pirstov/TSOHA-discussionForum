@@ -173,11 +173,16 @@ def section(id):
 	# Set the session url in case the user is not yet logged in
 	if not "username" in session:
 		session["url"] = "/section/" + str(id)
+		isModerator = False
+	else:
+		sql = "SELECT moderator FROM users where username=:username"
+		result = db.session.execute(sql, {"username":session["username"]})
+		isModerator = result.fetchone().moderator
 
 	# Query for the section name based on the id
-	sql = "SELECT section_name FROM sections WHERE id=:id"
+	sql = "SELECT section_name, private FROM sections WHERE id=:id"
 	result = db.session.execute(sql, {"id":id})
-	section_name = result.fetchone().section_name
+	section = result.fetchone()
 
 	# Query for the thread id, posting time, thread name, and username of the poster for each thread
 	sql = "SELECT T.id, T.posting_time, T.thread_name, U.username FROM threads T"\
@@ -186,7 +191,7 @@ def section(id):
 	threads = result.fetchall()
 	
 	# Render the appropriate section page
-	return render_template("section.html", id = id, threads = threads, section_name = section_name)
+	return render_template("section.html", id = id, threads = threads, section = section, isModerator=isModerator)
 
 
 # Thread creation page
@@ -484,3 +489,49 @@ def applyPromotion():
 	db.session.commit()
 
 	return redirect("/")
+
+# Granting a user moderator rights
+@app.route("/<id>/grantuseraccess")
+def grantuseraccess(id):
+
+	# Query for the section name corresponding to the id
+	sql = "SELECT section_name FROM sections WHERE id=:section_id"
+	result = db.session.execute(sql, {"section_id": id})
+	section = result.fetchone()
+
+	# Render the user promotion page
+	return render_template("grantuseraccess.html", id=id, section_name = section.section_name, error=None)
+
+
+# Applying the user access to the private section
+@app.route("/<id>/applyuseraccess", methods=["POST"])
+def applyuseraccess(id):
+
+	username = request.form["username"]
+
+	# Check that something is typed in
+	if not username:
+		error = "Please type in a username"
+		sql = "SELECT section_name FROM sections WHERE id=:section_id"
+		result = db.session.execute(sql, {"section_id":id})
+		section = result.fetchone()
+		return render_template("grantuseraccess.html", id = id, section_name = section.section_name, error=error)
+
+	# Check that the typed in string is an actual username
+	sql = "SELECT id FROM users WHERE username=:username"
+	result = db.session.execute(sql, {"username":username})
+	user = result.fetchone()
+
+	if not user:
+		error = "Username not found"
+		sql = "SELECT section_name FROM sections WHERE id=:section_id"
+		result = db.session.execute(sql, {"section_id":id})
+		section = result.fetchone()
+		return render_template("grantuseraccess.html", id = id, section_name = section.section_name, error=error)
+
+	# A valid username is input, grant access
+	sql = "INSERT INTO user_privileges (user_id, section_id) VALUES (:user_id, :section_id)"
+	db.session.execute(sql, {"user_id":user.id, "section_id": id})
+	db.session.commit()
+
+	return redirect("/section/" + str(id))
