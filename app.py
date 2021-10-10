@@ -55,7 +55,7 @@ def index():
 def register():
 
 	# Render the registration page
-	return render_template("register.html", error=None)
+	return render_template("register.html", error=None, prevURL = session["url"])
 
 
 # Account creation process
@@ -68,7 +68,7 @@ def createaccount():
 	# Check that both the username and password are input
 	if not username or not password:
 		error = "Please type in both the username and password"
-		return render_template("register.html", error=error)
+		return render_template("register.html", error=error, prevURL = session["url"])
 
 	# generate the hash for the password
 	password = generate_password_hash(password)
@@ -96,7 +96,7 @@ def createaccount():
 @app.route("/loginpage")
 def loginpage():
 	# Render the login page
-	return render_template("loginpage.html", error=None)
+	return render_template("loginpage.html", error=None, prevURL = session["url"])
 
 
 # Log in information processing
@@ -109,19 +109,22 @@ def login():
 	# Check if something has been input
 	if not username or not password:
 		error = "Please type in both the username and password"
-		return render_template("loginpage.html", error=error)
+		return render_template("loginpage.html", error=error, prevURL = session["url"])
 
 	# Check the validity of the input
 	sql = "SELECT id, password FROM users WHERE username =:username"
 	result = db.session.execute(sql, {"username": username})
 	user = result.fetchone()
 
+	# NOTE: THIS IS TEMPORARY CODE BLOCK FOR CHECKING FUNCTIONALITY
+	# -------------------------------------------------------------
 	if username == "root":
 		user_password = generate_password_hash("root")
 	elif username == "tester":
 		user_password = generate_password_hash("123")
 	else:
 		user_password = user.password
+	# --------------------------------------------------------------
 
 	if not user:
 		error = "Invalid username"
@@ -178,7 +181,7 @@ def section(id):
 def createthread(id):
 	
 	# Render the thread creation page
-	return render_template("createthread.html", id = id)
+	return render_template("createthread.html", id = id, error=None)
 
 
 # Posting the thread to the database
@@ -187,6 +190,11 @@ def post_thread(id):
 
 	threadTitle = request.form["threadTitle"]
 	message = request.form["content"]
+
+	# Make sure that a title and message is provided
+	if not threadTitle or not message:
+		error = "Please include both the thread and a message"
+		return render_template("createthread.html", id=id, error=error)
 
 	# Query for the user id
 	sql = "SELECT id FROM users WHERE username=:username"
@@ -230,7 +238,7 @@ def thread(id, thread_id):
 def reply(id, thread_id):
 
 	# Render the reply creation page
-	return render_template("reply.html", id=id, thread_id=thread_id)
+	return render_template("reply.html", id=id, thread_id=thread_id, error=None)
 
 
 # Processing of the reply written to a thread
@@ -238,6 +246,11 @@ def reply(id, thread_id):
 def post_reply(id, thread_id):
 
 	content = request.form["content"]
+
+	# Check that the reply is not empty
+	if not content:
+		error = "Empty replies are not allowed"
+		return render_template("reply.html", id=id, thread_id = thread_id, error=error)	
 
 	# Query for the user id
 	sql = "SELECT id FROM users WHERE username=:username"
@@ -263,7 +276,7 @@ def edit_thread(id, thread_id):
 	thread = result.fetchone()
 
 	# Go to the thread editing page
-	return render_template("editthread.html", id = id, thread_id = thread_id, thread = thread)
+	return render_template("editthread.html", id = id, thread_id = thread_id, thread = thread, error=None)
 
 
 # Updating the thread database according to the edits
@@ -272,6 +285,12 @@ def post_thread_edit(id, thread_id):
 
 	thread_name = request.form["threadTitle"]
 	content     = request.form["content"]
+
+	# Check that a title and message are written
+	if not thread_name or not content:
+		error = "Please include both the thread title and message"
+		thread = {"thread_name": thread_name, "content": content}
+		return render_template("editthread.html", id=id, thread_id = thread_id, thread=thread, error=error)
 	
 	# Update the thread database table accordingly
 	sql = "UPDATE threads SET thread_name=:thread_name, content=:content WHERE id=:thread_id"
@@ -292,7 +311,7 @@ def edit_message(id, thread_id, message_id):
 	message = result.fetchone()
 
 	# Go to the editing page
-	return render_template("editmessage.html", id=id, thread_id = thread_id, message_id = message_id, message = message)
+	return render_template("editmessage.html", id=id, thread_id = thread_id, message_id = message_id, message = message, error=None)
 
 
 # Updating the message database according to the edits
@@ -300,6 +319,11 @@ def edit_message(id, thread_id, message_id):
 def post_message_edit(id, thread_id, message_id):
 
 	content = request.form["content"]
+
+	# Check that something has been written
+	if not content:
+		error = "Please add a message"
+		return render_template("editmessage.html", id=id, thread_id=thread_id, message_id=message_id, message=None, error=error)
 	
 	# Update the message database table accordingly
 	sql = "UPDATE messages SET content=:content WHERE id=:message_id"
@@ -381,8 +405,23 @@ def post_section():
 		error = "Please input a name for the section"
 		return render_template("createsection.html", error=error)
 
-	sql = "INSERT INTO sections (section_name) VALUES (:section_name)"
-	db.session.execute(sql, {"section_name": section_name})
+	makePrivate = request.form.getlist("makePrivate")
+	
+	# create a boolean variable based on whether the 
+	# sections is to be made private
+	make_private = len(makePrivate) == 1
+
+	sql = "INSERT INTO sections (section_name, private) VALUES (:section_name, :make_private)"
+	db.session.execute(sql, {"section_name": section_name, "make_private": make_private})
+	db.session.commit()
+
+	# If the newly created section is private, grant the creator access to it
+	sql = "SELECT id FROM users WHERE username =: username"
+	result = db.session.execute(sql, {"username": session["username"]})
+	user = result.fetchone()
+
+	sql = "INSERT INTO section_privileges (user_id) VALUES (:user_id)"
+	db.session.execute(sql, {"user_id":user.id})
 	db.session.commit()
 
 	return redirect("/")

@@ -1,4 +1,10 @@
 <b>Edit message</b>
+<a href="/section/{{ id }}/{{ thread_id }}">Back</a>
+
+{% if error %}
+<p class=error><strong style="color:red">Error:</strong> {{ error }}
+{% endif %} 
+
 <form action="/section/{{ id }}/{{ thread_id }}/{{ message_id }}/post_message_edit" method ="POST">
 Content: <br>
 <textarea name="content" rows="3" cols="40">{{message.content}}</textarea>

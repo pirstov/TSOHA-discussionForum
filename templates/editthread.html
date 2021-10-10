@@ -1,5 +1,10 @@
 <b>Edit thread</b><br>
 <a href="/section/{{ id }}/{{ thread_id }}">Back</a><br>
+
+{% if error %}
+<p class=error><strong style="color:red">Error:</strong> {{ error }}
+{% endif %} 
+
 <form action="/section/{{ id }}/{{ thread_id }}/post_thread_edit" method ="POST">
 <p>Thread title:<br>
 <input type="text" name="threadTitle" value = "{{thread.thread_name}}"></p>

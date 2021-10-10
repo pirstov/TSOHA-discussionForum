@@ -1,5 +1,10 @@
 <b>Write a reply</b><br>
 <a href="/section/{{ id }}/{{ thread_id }}">Back</a>
+
+{% if error %}
+<p class=error><strong style="color:red">Error:</strong> {{ error }}
+{% endif %}
+
 <form action="/section/{{ id }}/{{ thread_id }}/post_reply" method ="POST">
 Content: <br>
 <textarea name="content" rows="3" cols="40"></textarea>
