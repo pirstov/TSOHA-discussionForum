@@ -1,4 +1,9 @@
-<h1>{{ section_name }}</h1>
+<!-- Prevent users without access rights from viewing private sections-->
+
+<h1>{{ section.section_name }}
+{% if section.private %}
+ (Private)
+{% endif %}</h1>
 <a href="/">Back</a>
 
 <!-- Search functionality -->
@@ -13,7 +18,11 @@
 
 
 {% if session.username %}
-<a href="/section/{{id}}/createthread">Create thread</a>  
+<a href="/section/{{id}}/createthread">Create thread</a> 
+{% if isModerator %}
+<br>
+<a href="/{{id}}/grantuseraccess">Grant user access to this section</a>
+{% endif %}
 {% else %}
 <a href="/loginpage">Log in</a> to create a thread
 {% endif %} 

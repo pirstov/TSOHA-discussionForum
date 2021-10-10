@@ -1,0 +1,11 @@
+<b>Grant user access to {{ section_name }}</b><br>
+<a href="/section/{{ id }}">Back</a>
+{% if error %}
+<p class=error><strong style="color:red">Error:</strong> {{ error }}
+{% endif %}
+<form action="/{{id}}/applyuseraccess" method ="POST">
+<p>User to be granted access rights:<br>
+<input type="text" name="username"></p>
+<input type="submit" value="Apply">
+</form>
+    
