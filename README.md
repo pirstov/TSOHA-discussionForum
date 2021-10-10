@@ -1,5 +1,5 @@
 # TSOHA-discussionForum
-Repository for the database application course arranged by Helsinki University. The application is intended to provide a discussion forum, of which the theme is still under consideraiton.
+Repository for the database application course arranged by University of Helsinki. The application is intended to provide a discussion forum, of which the theme is still under consideraiton.
 
 The target is to implement at least the properties listed below.
 1. The user can create an account and log in.
@@ -12,19 +12,26 @@ The target is to implement at least the properties listed below.
 8. The user with moderation rights can create a private discussion area and define, which users have access to it.
 
 ---------------------------------------
-Current status, as of 8th of October
+Current status, as of 10th of October
 ---------------------------------------
 Of the above requirements,
-1. An initial implementation is complete.
-2. An initial implementation is complete.
-3. An initial implementation is complete.
-4. An initial implementation is complete.
-5. An initial implementation is complete.
-6. An initial implementation is complete.
-7. TBD, not yet implemented
-8. TBD, not yet implemented.
+1. Implemented. 
+2. Implemented. Although, the structure of thread table is subject to modification so that the message content is placed in the messages table.
+3. Implemented.
+4. Implemented.
+5. Implemented.
+6. Implemented. Should the structure of thread table be subject to modification, this it to be modified accordingly.
+7. Implemented.
+8. Implemented.
 
-First, basic forum functionality, such as browsing sections and threads, as well as account creation and logging in, is implemented. Following this, creation of threads and replies is to be implemented. In its wake/in parallel, use registration and log in functionality is to be further honed. Moderation rights, private discussions, modifications of threads/messages come in last.
+Next steps include, but are not limited to:
+- Considering the modification of thread table
+- Splitting the "app.py" into modules for messages, threads, sections, registration/login etc
+- Improving the interactivity of the forum by adding more messages for the user related to succesful logins, account/thead/message creations
+- Improving the layout of the pages
+- Implementing the calculation of number of replies in each thread for the section view
+- Going over the accessibility of each page, so for example a user that is not logged in can not go to message creation page
+
 
 To test this app in Heroku, enter the following in command line while accessing the project folder:
 1. heroku login (log in with your credentials)
@@ -39,4 +46,8 @@ This should yield succesful deployment of a Heroku webpage for the discussion fo
 
 Link to the Heroku app: http://tsoha-discussionforum.herokuapp.com/ (LAST UPDATED: 8th of October)
 
----------------------------------------
+PRE-MADE ACCOUNTS FOR TESTING:
+user: root / password: root (moderator account)
+user: tester / password: 123
+
+----------------------------------
