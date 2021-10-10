@@ -1,3 +1,6 @@
+<!-- Prevent users without access rights from viewing private sections-->
+{% if hasAccess %}
+
 <b>Grant user access to {{ section_name }}</b><br>
 <a href="/section/{{ id }}">Back</a>
 {% if error %}
@@ -8,4 +11,7 @@
 <input type="text" name="username"></p>
 <input type="submit" value="Apply">
 </form>
-    
+
+{% else %}
+You do not have permission to view this page.
+{% endif %}

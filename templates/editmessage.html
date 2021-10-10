@@ -1,3 +1,6 @@
+<!-- Prevent users without access rights from viewing private sections-->
+{% if hasAccess %}
+
 <b>Edit message</b>
 <a href="/section/{{ id }}/{{ thread_id }}">Back</a>
 
@@ -11,4 +14,8 @@ Content: <br>
 <br>
 <input type="submit" value="Post">
 </form>
+    
+{% else %}
+You do not have permission to view this page.
+{% endif %}
     

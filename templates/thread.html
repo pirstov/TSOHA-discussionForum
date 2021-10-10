@@ -1,3 +1,6 @@
+<!-- Prevent users without access rights from viewing private sections-->
+{% if hasAccess %}
+
 <h2>{{ thread.thread_name }}</h2>
 <a href="/section/{{id}}">Back</a>
 <hr>
@@ -34,3 +37,7 @@
 {{ message["content"] }}
 <hr style="margin-bottom:0.1cm" >
 {% endfor %}
+
+{% else %}
+You do not have permission to view this page.
+{% endif %}

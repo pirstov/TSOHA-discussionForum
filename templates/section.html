@@ -1,4 +1,5 @@
 <!-- Prevent users without access rights from viewing private sections-->
+{% if hasAccess %}
 
 <h1>{{ section.section_name }}
 {% if section.private %}
@@ -36,3 +37,7 @@ Posted by: {{ thread.username }} <br>
 Number of replies: TBD <br>
 <hr>
 {% endfor %}
+
+{% else %}
+You do not have permission to view this page.
+{% endif %}

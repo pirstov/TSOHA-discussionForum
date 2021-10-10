@@ -25,6 +25,31 @@ app.config["SECRET_KEY"] = getenv("SECRET_KEY")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
+# A helper function for checking if the user has access to the URL that is accessed
+def check_privileges(section_id, username = None):
+	sql = "SELECT private FROM sections WHERE id=:section_id"
+	result = db.session.execute(sql, {"section_id": section_id})
+	isPrivate = result.fetchone().private
+	if isPrivate:
+		if not username:
+			# The section is private but the user is not logged in, no access
+			return False
+		# The section is private and the user is logged in, access privileges have to be checked
+		sql = "SELECT id FROM users WHERE username=:username"
+		result = db.session.execute(sql, {"username":username})
+		user_id = result.fetchone().id
+
+		sql = "SELECT id FROM user_privileges WHERE section_id=:section_id AND user_id=:user_id"
+		result = db.session.execute(sql, {"section_id":section_id, "user_id":user_id})
+		hasAccess = result.fetchone()
+		if hasAccess:
+			return True
+		else:
+			return False
+	else:
+		# The section is not private, access is granted
+		return True
+
 # Root page
 @app.route("/")
 def index():
@@ -174,10 +199,14 @@ def section(id):
 	if not "username" in session:
 		session["url"] = "/section/" + str(id)
 		isModerator = False
+		hasAccess = check_privileges(id)
 	else:
+		# User is logged in, check if moderator
 		sql = "SELECT moderator FROM users where username=:username"
 		result = db.session.execute(sql, {"username":session["username"]})
 		isModerator = result.fetchone().moderator
+		# Check if access to private section
+		hasAccess = check_privileges(id, session["username"])
 
 	# Query for the section name based on the id
 	sql = "SELECT section_name, private FROM sections WHERE id=:id"
@@ -191,15 +220,18 @@ def section(id):
 	threads = result.fetchall()
 	
 	# Render the appropriate section page
-	return render_template("section.html", id = id, threads = threads, section = section, isModerator=isModerator)
-
+	return render_template("section.html", id = id, threads = threads, section = section, isModerator=isModerator, hasAccess = hasAccess)
 
 # Thread creation page
 @app.route("/section/<id>/createthread")
 def createthread(id):
+	if not "username" in session:
+		hasAccess = False
+	else:
+		hasAccess = check_privileges(id, session["username"])
 	
 	# Render the thread creation page
-	return render_template("createthread.html", id = id, error=None)
+	return render_template("createthread.html", id = id, error=None, hasAccess = hasAccess)
 
 
 # Posting the thread to the database
@@ -212,7 +244,7 @@ def post_thread(id):
 	# Make sure that a title and message is provided
 	if not threadTitle or not message:
 		error = "Please include both the thread and a message"
-		return render_template("createthread.html", id=id, error=error)
+		return render_template("createthread.html", id=id, error=error, hasAccess=True)
 
 	# Query for the user id
 	sql = "SELECT id FROM users WHERE username=:username"
@@ -235,6 +267,14 @@ def thread(id, thread_id):
 	# Set the session url in case the user is not yet logged in
 	if not "username" in session:
 		session["url"] = "/section/" + str(id) + "/" + str(thread_id)
+		hasAccess = check_privileges(id)
+	else:
+		# User is logged in, check if access rights are ok
+		sql = "SELECT id, moderator FROM users where username=:username"
+		result = db.session.execute(sql, {"username":session["username"]})
+		user = result.fetchone()
+		# Check if access to private section
+		hasAccess = check_privileges(id, session["username"])
 
 	# Query for the thread name and content
 	sql = "SELECT T.thread_name, T.posting_time, T.content, U.username FROM threads T LEFT JOIN users U ON T.user_id = U.id WHERE T.id=:thread_id"
@@ -248,15 +288,19 @@ def thread(id, thread_id):
 	messages = result.fetchall()
 
 	# Render the appropriate thread page
-	return render_template("thread.html", messages = messages, id=id, thread_id = thread_id, thread = thread)
+	return render_template("thread.html", messages = messages, id=id, thread_id = thread_id, thread = thread, hasAccess = hasAccess)
 
 
 # Page for writing a reply to a thread
 @app.route("/section/<id>/<thread_id>/reply")
 def reply(id, thread_id):
+	if not "username" in session:
+		hasAccess = False
+	else:
+		hasAccess = check_privileges(id, session["username"])
 
 	# Render the reply creation page
-	return render_template("reply.html", id=id, thread_id=thread_id, error=None)
+	return render_template("reply.html", id=id, thread_id=thread_id, error=None, hasAccess=hasAccess)
 
 
 # Processing of the reply written to a thread
@@ -268,7 +312,7 @@ def post_reply(id, thread_id):
 	# Check that the reply is not empty
 	if not content:
 		error = "Empty replies are not allowed"
-		return render_template("reply.html", id=id, thread_id = thread_id, error=error)	
+		return render_template("reply.html", id=id, thread_id = thread_id, error=error, hasAccess = True)	
 
 	# Query for the user id
 	sql = "SELECT id FROM users WHERE username=:username"
@@ -287,6 +331,15 @@ def post_reply(id, thread_id):
 # Editing a thread
 @app.route("/section/<id>/<thread_id>/edit_thread")
 def edit_thread(id, thread_id):
+	if not "username" in session:
+		hasAccess = False
+	else:
+		hasAccess = check_privileges(id, session["username"])
+		# Also check that the user is actually the creator of the thread
+		sql = "SELECT U.username FROM threads T LEFT JOIN users U on T.user_id = U.id WHERE T.id=:thread_id"
+		result = db.session.execute(sql, {"thread_id": thread_id})
+		user = result.fetchone().username
+		hasAccess = hasAccess and (user == session["username"])
 
 	# Query for the thread name and content
 	sql = "SELECT thread_name, content FROM threads where id=:thread_id"
@@ -294,7 +347,7 @@ def edit_thread(id, thread_id):
 	thread = result.fetchone()
 
 	# Go to the thread editing page
-	return render_template("editthread.html", id = id, thread_id = thread_id, thread = thread, error=None)
+	return render_template("editthread.html", id = id, thread_id = thread_id, thread = thread, error=None, hasAccess=hasAccess)
 
 
 # Updating the thread database according to the edits
@@ -308,7 +361,7 @@ def post_thread_edit(id, thread_id):
 	if not thread_name or not content:
 		error = "Please include both the thread title and message"
 		thread = {"thread_name": thread_name, "content": content}
-		return render_template("editthread.html", id=id, thread_id = thread_id, thread=thread, error=error)
+		return render_template("editthread.html", id=id, thread_id = thread_id, thread=thread, error=error, hasAccess=True)
 	
 	# Update the thread database table accordingly
 	sql = "UPDATE threads SET thread_name=:thread_name, content=:content WHERE id=:thread_id"
@@ -323,13 +376,24 @@ def post_thread_edit(id, thread_id):
 @app.route("/section/<id>/<thread_id>/<message_id>/edit_message")
 def edit_message(id, thread_id, message_id):
 
+	# Check if the user has rights to edit the message
+	if not "username" in session:
+		hasAccess = False
+	else:
+		hasAccess = check_privileges(id, session["username"])
+		# Check also that the user is the creator of the message
+		sql = "SELECT U.username FROM messages M LEFT JOIN users U on M.user_id = U.id WHERE M.id=:message_id"
+		result = db.session.execute(sql, {"message_id": message_id})
+		user = result.fetchone().username
+		hasAccess = hasAccess and (user == session["username"])
+
 	# Query for the current content of the edited message
 	sql = "SELECT content FROM messages WHERE id=:message_id"
 	result = db.session.execute(sql, {"message_id": message_id})
 	message = result.fetchone()
 
 	# Go to the editing page
-	return render_template("editmessage.html", id=id, thread_id = thread_id, message_id = message_id, message = message, error=None)
+	return render_template("editmessage.html", id=id, thread_id = thread_id, message_id = message_id, message = message, error=None, hasAccess=hasAccess)
 
 
 # Updating the message database according to the edits
@@ -341,7 +405,7 @@ def post_message_edit(id, thread_id, message_id):
 	# Check that something has been written
 	if not content:
 		error = "Please add a message"
-		return render_template("editmessage.html", id=id, thread_id=thread_id, message_id=message_id, message=None, error=error)
+		return render_template("editmessage.html", id=id, thread_id=thread_id, message_id=message_id, message=None, error=error, hasAccess=True)
 	
 	# Update the message database table accordingly
 	sql = "UPDATE messages SET content=:content WHERE id=:message_id"
@@ -355,32 +419,50 @@ def post_message_edit(id, thread_id, message_id):
 # Deleting a message in a thread
 @app.route("/section/<id>/<thread_id>/<message_id>/delete_message")
 def delete_message(id, thread_id, message_id):
+	# Check that the user is actually the one who wrote the message
+	if not "username" in session:
+		return redirect("/section/" + str(id) + "/" + str(thread_id))
+	else:
+		# Check that the user is actually the one who wrote the message
+		sql = "SELECT U.username FROM messages M LEFT JOIN users U ON m.user_id = U.id WHERE m.id=:message_id"
+		result = db.session.execute(sql, {"message_id": message_id})
+		user = result.fetchone().username
+		if (user == session["username"]):
+			# If the user matches, set the visibility of the deleted message to false
+			sql = "UPDATE messages SET visible=false WHERE id=:message_id"
+			db.session.execute(sql, {"message_id": message_id})
+			db.session.commit()
 
-	# Set the visibility of the deleted message to false
-	sql = "UPDATE messages SET visible=false WHERE id=:message_id"
-	db.session.execute(sql, {"message_id": message_id})
-	db.session.commit()
-
-	# Return to the thread
-	return redirect("/section/" + str(id) + "/" + str(thread_id))
+		# Return to the thread
+		return redirect("/section/" + str(id) + "/" + str(thread_id))
 
 
 # Deleting a thread and all its associated messages
 @app.route("/section/<id>/<thread_id>/delete_thread")
 def delete_thread(id, thread_id):
+	# Check that the user is actually the one who wrote the thread
+	if not "username" in session:
+		return redirect("/section/" + str(id) + "/" + str(thread_id))
+	else:
+		# Check that the user is correct
+		sql = "SELECT U.username FROM threads T LEFT JOIN users U on T.user_id=U.id WHERE T.id=:thread_id"
+		result = db.session.execute(sql, {"thread_id": thread_id})
+		user = result.fetchone().username
+		if (user == session["username"]):
+			# If the user matches, set the visibility of every message in the thread to false
+			sql = "UPDATE messages SET visible=false WHERE thread_id=:thread_id"
+			db.session.execute(sql, {"thread_id":thread_id})
+			db.session.commit()
 
-	# Set the visibility of every message in the thread to false
-	sql = "UPDATE messages SET visible=false WHERE thread_id=:thread_id"
-	db.session.execute(sql, {"thread_id":thread_id})
-	db.session.commit()
+			# Set the visibility of the thread to false
+			sql = "UPDATE threads SET visible=false WHERE id=:thread_id"
+			db.session.execute(sql, {"thread_id":thread_id})
+			db.session.commit()
 
-	# Set the visibility of the thread to false
-	sql = "UPDATE threads SET visible=false WHERE id=:thread_id"
-	db.session.execute(sql, {"thread_id":thread_id})
-	db.session.commit()
-
-	# Return to the section of the deleted thread
-	return redirect("/section/" + str(id))
+			# Return to the section of the deleted thread
+			return redirect("/section/" + str(id))
+		else:
+			return redirect("/section/" + str(id) + "/" + str(thread_id))
 
 
 # Processing of search results 
@@ -408,9 +490,16 @@ def result():
 # Creation of sections
 @app.route("/createsection")
 def createsection():
+	if not "username" in session:
+		hasAccess = False
+	else:
+		# Check if the user is a moderator
+		sql = "SELECT moderator FROM users WHERE username=:username"
+		result = db.session.execute(sql, {"username":session["username"]})
+		hasAccess = result.fetchone().moderator
 
 	# Render the section creation page
-	return render_template("createsection.html", error=None)
+	return render_template("createsection.html", error=None, hasAccess=hasAccess)
 
 # Adding the section to the database table
 @app.route("/post_section", methods=["POST"])
@@ -421,7 +510,7 @@ def post_section():
 	# Check that a name is given for the section
 	if not section_name:
 		error = "Please input a name for the section"
-		return render_template("createsection.html", error=error)
+		return render_template("createsection.html", error=error, hasAccess=True)
 
 	makePrivate = request.form.getlist("makePrivate")
 	
@@ -447,21 +536,31 @@ def post_section():
 # Deleting a section
 @app.route("/deletesection/<section_id>")
 def deletesection(section_id):
-
-	# Update the visible value of the deleted section to false 
-	sql = "UPDATE sections SET visible=false WHERE id=:section_id"
-	db.session.execute(sql, {"section_id": section_id})
-	db.session.commit()
-	
+	if "username" in session:
+		if check_privileges(section_id, session["username"]):
+			# Update the visible value of the deleted section to false 
+			sql = "UPDATE sections SET visible=false WHERE id=:section_id"
+			db.session.execute(sql, {"section_id": section_id})
+			db.session.commit()
+			
 	# Render the front page
 	return redirect("/")
 
 # Granting a user moderator rights
 @app.route("/promoteuser")
 def promoteuser():
-
-	# Render the user promotion page
-	return render_template("promoteuser.html", error=None)
+	if not "username" in session:
+		return redirect("/")
+	else:
+		sql = "SELECT moderator FROM users WHERE username=:username"
+		result = db.session.execute(sql, {"username": session["username"]})
+		user = result.fetchone().moderator
+		if user:
+			# Render the user promotion page
+			return render_template("promoteuser.html", error=None)
+		else:
+			return redirect("/")
+		
 
 # Applying the promotion to the user table
 @app.route("/applyPromotion", methods=["POST"])
@@ -493,6 +592,10 @@ def applyPromotion():
 # Granting a user moderator rights
 @app.route("/<id>/grantuseraccess")
 def grantuseraccess(id):
+	if not "username" in session:
+		hasAccess = check_privileges(id)
+	else:
+		hasAccess = check_privileges(id, session["username"])
 
 	# Query for the section name corresponding to the id
 	sql = "SELECT section_name FROM sections WHERE id=:section_id"
@@ -500,7 +603,7 @@ def grantuseraccess(id):
 	section = result.fetchone()
 
 	# Render the user promotion page
-	return render_template("grantuseraccess.html", id=id, section_name = section.section_name, error=None)
+	return render_template("grantuseraccess.html", id=id, section_name = section.section_name, error=None, hasAccess=hasAccess)
 
 
 # Applying the user access to the private section
@@ -515,7 +618,7 @@ def applyuseraccess(id):
 		sql = "SELECT section_name FROM sections WHERE id=:section_id"
 		result = db.session.execute(sql, {"section_id":id})
 		section = result.fetchone()
-		return render_template("grantuseraccess.html", id = id, section_name = section.section_name, error=error)
+		return render_template("grantuseraccess.html", id = id, section_name = section.section_name, error=error, hasAccess=True)
 
 	# Check that the typed in string is an actual username
 	sql = "SELECT id FROM users WHERE username=:username"
@@ -527,7 +630,7 @@ def applyuseraccess(id):
 		sql = "SELECT section_name FROM sections WHERE id=:section_id"
 		result = db.session.execute(sql, {"section_id":id})
 		section = result.fetchone()
-		return render_template("grantuseraccess.html", id = id, section_name = section.section_name, error=error)
+		return render_template("grantuseraccess.html", id = id, section_name = section.section_name, error=error, hasAccess=True)
 
 	# A valid username is input, grant access
 	sql = "INSERT INTO user_privileges (user_id, section_id) VALUES (:user_id, :section_id)"

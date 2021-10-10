@@ -1,3 +1,6 @@
+<!-- Prevent users without access rights from viewing private sections-->
+{% if hasAccess %}
+
 <b>Section creation page</b><br>
 <a href="/">Back</a><br>
 {% if error %}
@@ -11,4 +14,8 @@
 <br>
 <input type="submit" value="Create">
 </form>
+
+{% else %}
+You do not have permission to view this page.
+{% endif %}
     
