@@ -15,6 +15,7 @@ Content: <br>
 <textarea name="content" rows="3" cols="40">{{thread.content}}</textarea>
 <br>
 <input type="submit" value="Post">
+<input type="hidden" name="crsf_token" value="{{ session.crsf_token }}">
 </form>
 
 {% else %}

@@ -10,6 +10,7 @@
 <p>User to be granted access rights:<br>
 <input type="text" name="username"></p>
 <input type="submit" value="Apply">
+<input type="hidden" name="crsf_token" value="{{ session.crsf_token }}">
 </form>
 
 {% else %}

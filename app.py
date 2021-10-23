@@ -1,6 +1,7 @@
 # Flask-related libraries
 from logging import debug
 from flask import Flask
+from flask import abort
 from flask import redirect, render_template, request, session
 
 # For formatting time stamp printing
@@ -15,7 +16,9 @@ from flask_sqlalchemy import SQLAlchemy
 # For hashing the passwords
 from werkzeug.security import check_password_hash, generate_password_hash
 
-# Create a Flask object
+# For generating crsf tokens
+import secrets
+
 app = Flask(__name__)
 # Configure according to the environment file
 app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
@@ -170,8 +173,11 @@ def login():
 
 	# Check the correctness of password
 	if check_password_hash(user_password, password):
+		# Set the session username
 		session["username"] = username
-		if "url" in session:
+		# Set a crsf_token for the user to prevent exploitation of CRSF vulnerability
+		session["crsf_token"] = secrets.token_hex(16)
+		if "url" in session:	
 			return redirect(session["url"])
 		# Login succesful, render the front page
 		return redirect("/")
@@ -237,6 +243,8 @@ def createthread(id):
 @app.route("/section/<id>/post_thread", methods = ["POST"])
 def post_thread(id):
 
+	check_crsf_token(request.form["crsf_token"])
+	
 	threadTitle = request.form["threadTitle"]
 	message = request.form["content"]
 
@@ -306,6 +314,8 @@ def reply(id, thread_id):
 @app.route("/section/<id>/<thread_id>/post_reply", methods = ["POST"])
 def post_reply(id, thread_id):
 
+	check_crsf_token(request.form["crsf_token"])
+
 	content = request.form["content"]
 
 	# Check that the reply is not empty
@@ -353,6 +363,8 @@ def edit_thread(id, thread_id):
 @app.route("/section/<id>/<thread_id>/post_thread_edit", methods = ["POST"])
 def post_thread_edit(id, thread_id):
 
+	check_crsf_token(request.form["crsf_token"])
+
 	thread_name = request.form["threadTitle"]
 	content     = request.form["content"]
 
@@ -398,6 +410,8 @@ def edit_message(id, thread_id, message_id):
 # Updating the message database according to the edits
 @app.route("/section/<id>/<thread_id>/<message_id>/post_message_edit", methods = ["POST"])
 def post_message_edit(id, thread_id, message_id):
+
+	check_crsf_token(request.form["crsf_token"])
 
 	content = request.form["content"]
 
@@ -504,6 +518,8 @@ def createsection():
 @app.route("/post_section", methods=["POST"])
 def post_section():
 
+	check_crsf_token(request.form["crsf_token"])
+
 	section_name = request.form["sectionName"]
 
 	# Check that a name is given for the section
@@ -565,6 +581,8 @@ def promoteuser():
 @app.route("/applyPromotion", methods=["POST"])
 def applyPromotion():
 
+	check_crsf_token(request.form["crsf_token"])
+
 	username = request.form["username"]
 
 	# Check that something is typed in
@@ -609,6 +627,8 @@ def grantuseraccess(id):
 @app.route("/<id>/applyuseraccess", methods=["POST"])
 def applyuseraccess(id):
 
+	check_crsf_token(request.form["crsf_token"])
+
 	username = request.form["username"]
 
 	# Check that something is typed in
@@ -637,3 +657,8 @@ def applyuseraccess(id):
 	db.session.commit()
 
 	return redirect("/section/" + str(id))
+
+# A helper function for checking the crsf token
+def check_crsf_token(token_from_form):
+	if session["crsf_token"] != token_from_form:
+		abort(403)

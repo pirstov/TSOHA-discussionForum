@@ -20,7 +20,7 @@
 
 {% if session.username %}
 <a href="/section/{{id}}/createthread">Create thread</a> 
-{% if isModerator %}
+{% if isModerator and section.private %}
 <br>
 <a href="/{{id}}/grantuseraccess">Grant user access to this section</a>
 {% endif %}

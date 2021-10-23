@@ -13,6 +13,7 @@
 <br>
 <br>
 <input type="submit" value="Create">
+<input type="hidden" name="crsf_token" value="{{ session.crsf_token }}">
 </form>
 
 {% else %}
