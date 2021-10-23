@@ -153,6 +153,10 @@ def login():
 	sql = "SELECT id, password FROM users WHERE username =:username"
 	result = db.session.execute(sql, {"username": username})
 	user = result.fetchone()
+	# Check that an account with the input username is found
+	if not user:
+		error = "Invalid username"
+		return render_template("loginpage.html", error=error, prevURL = session["url"])
 
 	# NOTE: THIS IS TEMPORARY CODE BLOCK FOR CHECKING FUNCTIONALITY
 	# -------------------------------------------------------------
@@ -164,22 +168,17 @@ def login():
 		user_password = user.password
 	# --------------------------------------------------------------
 
-	if not user:
-		error = "Invalid username"
-		# Refresh the login page with an error message
-		return render_template("loginpage.html", error=error)
+	# Check the correctness of password
+	if check_password_hash(user_password, password):
+		session["username"] = username
+		if "url" in session:
+			return redirect(session["url"])
+		# Login succesful, render the front page
+		return redirect("/")
 	else:
-		# Check the correctness of password
-		if check_password_hash(user_password, password):
-			session["username"] = username
-			if "url" in session:
-				return redirect(session["url"])
-			# Login succesful, render the front page
-			return redirect("/")
-		else:
-			error = "Invalid password"
-			# Refresh the login page with an error message
-			return render_template("loginpage.html", error=error)
+		error = "Invalid password"
+		# Refresh the login page with an error message
+		return render_template("loginpage.html", error=error, prevURL = session["url"])
 
 
 # Log out processing
