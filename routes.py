@@ -1,6 +1,8 @@
 from app import app
 from db import db
 
+import users
+
 # Flask-related libraries
 from logging import debug
 #from flask import Flask
@@ -98,7 +100,6 @@ def index():
 @app.route("/register")
 def register():
 
-	# Render the registration page
 	return render_template("register.html", error=None, prevURL = session["url"])
 
 
@@ -106,55 +107,73 @@ def register():
 @app.route("/createaccount", methods=["POST"])
 def createaccount():
 
-	username = request.form["username"]
-	password = request.form["password"]
+    username = request.form["username"]
+    password = request.form["password"]
 
 	# Check that both the username and password are input
-	if not username or not password:
-		error = "Please type in both the username and password"
-		return render_template("register.html", error=error, prevURL = session["url"])
+    if not username or not password:
+        error = "Please type in both the username and password"
+        return render_template("register.html", error=error, prevURL = session["url"])
 
+    if users.createAccount(username, password):
+        # Account creation successful
+        return redirect("/")
+    else:
+        # Account creation unsuccesful, provide the user an error message
+        error = "Username already in use!"
+        return render_template("register.html", error=error)
+'''
 	# generate the hash for the password
-	password = generate_password_hash(password)
+    password = generate_password_hash(password)
 
 	# Check if the username is already in use
-	sql = "SELECT count(*) FROM users WHERE username = :username"
-	result = db.session.execute(sql, {"username":username})
-	usernameAvailable = result.fetchone()["count"] == 0
+    sql = "SELECT count(*) FROM users WHERE username = :username"
+    result = db.session.execute(sql, {"username":username})
+    usernameAvailable = result.fetchone()["count"] == 0
 
-	if usernameAvailable:
+    #if usernameAvailable:
 		# Insert the new user into the appropriate database table
-		sql = "INSERT INTO users (username, password) VALUES (:username, :password)"
-		db.session.execute(sql, {"username":username, "password":password})
-		db.session.commit()
+        sql = "INSERT INTO users (username, password) VALUES (:username, :password)"
+        db.session.execute(sql, {"username":username, "password":password})
+        db.session.commit()
 
 		# Return to the front page
-		return redirect("/")
-	else:
+        return redirect("/")
+    #else:
 		# refresh the account creation page with an error message
-		error = 'Username already in use!'
-		return render_template("register.html", error=error)
-
+        error = 'Username already in use!'
+        return render_template("register.html", error=error)
+'''
 
 # Login page
 @app.route("/loginpage")
 def loginpage():
-	# Render the login page
+
 	return render_template("loginpage.html", error=None, prevURL = session["url"])
 
 
 # Log in information processing
 @app.route("/login", methods=['POST'])
 def login():
-
-	username = request.form["username"]
-	password = request.form["password"]
+    username = request.form["username"]
+    password = request.form["password"]
 
 	# Check if something has been input
-	if not username or not password:
-		error = "Please type in both the username and password"
-		return render_template("loginpage.html", error=error, prevURL = session["url"])
+    if not username or not password:
+        error = "Please type in both the username and password"
+        return render_template("loginpage.html", error=error, prevURL = session["url"])
 
+    if users.login(username, password):
+        # Login successful
+        if "url" in session:
+            return redirect(session["url"])
+        else:
+            return redirect("/")
+    else:
+        # Login unsuccesful, provide the user an error message
+        error = "Invalid username or password"
+        return render_template("loginpage.html", error=error, prevURL = session["url"])
+'''
 	# Check the validity of the input
 	sql = "SELECT id, password FROM users WHERE username =:username"
 	result = db.session.execute(sql, {"username": username})
@@ -188,17 +207,20 @@ def login():
 		error = "Invalid password"
 		# Refresh the login page with an error message
 		return render_template("loginpage.html", error=error, prevURL = session["url"])
-
+'''
 
 # Log out processing
 @app.route("/logout")
 def logout():
 	
+    users.logout()
+    return redirect("/")
+'''
 	# Delete the current session
 	del session["username"]
 	# Render the front page
 	return redirect("/")
-    
+'''
 
 # Pages for different sections
 @app.route("/section/<id>")
