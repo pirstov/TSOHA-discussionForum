@@ -43,7 +43,9 @@ This should yield succesful deployment of a Heroku webpage for the discussion fo
 Link to the Heroku app: http://tsoha-discussionforum.herokuapp.com/ (LAST UPDATED: 24th of October 2021)
 
 PRE-MADE ACCOUNTS FOR TESTING:
+
 user: root / password: root (moderator account)
+
 user: tester / password: 123
 
 ----------------------------------
