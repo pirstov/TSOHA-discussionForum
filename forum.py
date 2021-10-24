@@ -11,7 +11,13 @@ def create_section(section_name, make_private):
 
     sql = "INSERT INTO sections (section_name, private) VALUES (:section_name, :make_private) RETURNING id"
     result = db.session.execute(sql, {"section_name": section_name, "make_private": make_private})
+    db.session.commit()
     section_id = result.fetchone().id
+
+    sql = "SELECT * FROM sections"
+    result = db.session.execute(sql)
+    sec = result.fetchall()
+    print(sec)
 
     return section_id
 
