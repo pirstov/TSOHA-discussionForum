@@ -1,0 +1,36 @@
+<!doctype html>
+
+<title>A discussion forum - {% block title %}{% endblock %}</title>
+<h1 style="margin-bottom:-5px">A discussion forum</h1>
+
+<span style="float: right">
+    <!-- link to the front page-->
+    <a href ="/">Front page</a>
+    <!-- Search bar -->
+    <form action="/result" method="GET">
+        <p> Search: <input type="text" name="query">
+        <input type="hidden" name="prevURL" value = {{ request.path }}>
+        <input type ="submit" value="Search"></p>
+    </form>
+</span>
+<br>
+<!-- Log in / log out possibility -->
+{% if session.username %}
+<p>You are logged in as {{ session.username }}
+    {% if isModerator %}
+    (Moderator) </p>
+    <a href="/promoteuser">Grant moderator rights to a user</a>
+    {% endif %}
+<br>
+<a href="/logout">Log out</a>
+
+{% else %}
+<p>You are not logged in.</p>
+<a href="/loginpage">Log in</a> 
+<br>
+<a href="/register">Create account</a>
+{% endif %}
+<hr>
+
+
+{% block content %}{% endblock %}
