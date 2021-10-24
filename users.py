@@ -1,19 +1,6 @@
 from db import db
 
-# Flask-related libraries
-#from logging import debug
-#from flask import Flask
-#from flask import abort
-from flask import redirect, render_template, request, session
-
-# For formatting time stamp printing
-#from datetime import datetime
-
-# For configuring flask through the .env file
-#from os import getenv
-
-# Database related library
-#from flask_sqlalchemy import SQLAlchemy
+from flask import session
 
 # For hashing the passwords
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -22,7 +9,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import secrets
 
 
-def createAccount(username, password):
+def create_account(username, password):
 
     # generate the hash for the password
 	password = generate_password_hash(password)
@@ -45,6 +32,7 @@ def createAccount(username, password):
 		return False
 
 def login(username, password):
+
     # Check the validity of the input
 	sql = "SELECT id, password FROM users WHERE username =:username"
 	result = db.session.execute(sql, {"username": username})
@@ -76,4 +64,98 @@ def login(username, password):
 		# Login failed, incorrect password
 		return False
 
+def logout():
+
+    del session["username"]
+
+def is_moderator():
+    if not "username" in session:
+        return False
+    else:
+        sql = "SELECT moderator FROM users WHERE username=:username"
+        result = db.session.execute(sql, {"username": session["username"]})
+        isModerator = result.fetchone().moderator
+        if isModerator:
+            return True
+        else:
+            return False
+
+def crsf_token_valid(crsf_token_input):
+
+    if session["crsf_token"] != crsf_token_input:
+        return False
+    else:
+        return True
+
+def promote_user(username):
+
+    # Check that the typed in string is an actual username
+    sql = "SELECT id FROM users WHERE username=:username"
+    result = db.session.execute(sql, {"username":username})
+    user = result.fetchone()
+
+    if not user:
+        return False
+
+    # A valid username is input, promote
+    sql = "UPDATE users SET moderator=true WHERE id=:user_id"
+    db.session.execute(sql, {"user_id": user.id})
+    db.session.commit()
+
+    return True
+
+def check_section_access(section_id):
+
+    sql = "SELECT private FROM sections WHERE id=:section_id"
+    result = db.session.execute(sql, {"section_id": section_id})
+    isPrivate = result.fetchone().private
+
+    if isPrivate:
+        if not "username" in session:
+            # The section is private but the user is not logged in, no access
+            return False
+        # The section is private and the user is logged in, access privileges have to be checked
+        user_id = get_user_id()
+
+        sql = "SELECT id FROM user_privileges WHERE section_id=:section_id AND user_id=:user_id"
+        result = db.session.execute(sql, {"section_id":section_id, "user_id":user_id})
+        hasAccess = result.fetchone()
+        if hasAccess:
+            return True
+        else:
+            return False
+    else:
+        # The section is not private, access is granted
+        return True
+
+def is_existing_username(username):
+
+    # Check that the typed in string is an actual username
+    sql = "SELECT id FROM users WHERE username=:username"
+    result = db.session.execute(sql, {"username":username})
+    user = result.fetchone()
+
+    if user:
+        return True
+    else:
+        return False
+
+def grant_private_section_access(username, section_id):
+
+    user_id = get_user_id(username)
+    sql = "INSERT INTO user_privileges (user_id, section_id) VALUES (:user_id, :section_id)"
+    db.session.execute(sql, {"user_id":user_id, "section_id": section_id})
+    db.session.commit()
+
+
+def get_user_id(username = None):
+    if not username:
+        if not "username" in session:
+            return 0
+        username = session["username"]
+
+    sql = "SELECT id FROM users WHERE username=:username"
+    result = db.session.execute(sql, {"username":username})
+    userId = result.fetchone().id
     
+    return userId

@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, session
 from os import getenv
 
 app = Flask(__name__)

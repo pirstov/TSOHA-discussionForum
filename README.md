@@ -12,25 +12,23 @@ The target is to implement at least the properties listed below.
 8. The user with moderation rights can create a private discussion area and define, which users have access to it.
 
 ---------------------------------------
-Current status, as of 10th of October
+Current status, as of 24th of October:
 ---------------------------------------
-Of the above requirements,
+of the above requirements,
 1. Implemented. 
-2. Implemented. Although, the structure of thread table is subject to modification so that the message content is placed in the messages table.
+2. Implemented.
 3. Implemented.
 4. Implemented.
 5. Implemented.
-6. Implemented. Should the structure of thread table be subject to modification, this it to be modified accordingly.
+6. Implemented.
 7. Implemented.
 8. Implemented.
 
 Next steps include, but are not limited to:
-- Considering the modification of thread table
-- Splitting the "app.py" into modules for messages, threads, sections, registration/login etc
+- Implement limiting of name/pw/message/title/lengths
 - Improving the interactivity of the forum by adding more messages for the user related to succesful logins, account/thead/message creations
 - Improving the layout of the pages
 - Implementing the calculation of number of replies in each thread for the section view
-- Going over the accessibility of each page, so for example a user that is not logged in can not go to message creation page
 
 
 To test this app in Heroku, enter the following in command line while accessing the project folder:
