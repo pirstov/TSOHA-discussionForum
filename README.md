@@ -35,7 +35,7 @@ To test this app in Heroku, enter the following in command line while accessing 
 3. heroku git:remote -a *APP NAME HERE*
 4. heroku addons:create heroku-postgresql
 5. heroku psql < schema.sql
-6. heroku config:set SECRET_KEY=<INSERT THE DESIRED SECRET KEY HERE>
+6. heroku config:set SECRET_KEY=*INSERT THE DESIRED SECRET KEY HERE*
 7. git push heroku main
 
 This should yield succesful deployment of a Heroku webpage for the discussion forum.
