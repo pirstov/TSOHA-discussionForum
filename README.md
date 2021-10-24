@@ -24,11 +24,6 @@ of the above requirements,
 7. Implemented.
 8. Implemented.
 
-Next steps include, but are not limited to:
-- Implement limiting of name/pw/message/title/lengths
-- Improving the interactivity of the forum by adding more messages for the user related to succesful logins, account/thead/message creations
-
-
 To test this app in Heroku, enter the following in command line while accessing the project folder:
 1. heroku login (log in with your credentials)
 2. heroku apps:create (create an app, random name given)
