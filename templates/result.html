@@ -1,8 +1,8 @@
-<p>Query results:</p>
+<h2>Query results:</h2>
 <a href="{{prevURL}}">Back</a>
 <hr>
 <hr>
-<b>Messages:</b><br>
+<h3 style="margin-bottom:-10px">Messages:</h3><br>
 {% for message in messages %}
 <i>Message: </i>{{ message.content }}<br>
 <i>In thread: </i><a href="/section/{{ message.section_id }}/{{ message.thread_id }}">{{ message.thread_name }}</a> <br>
@@ -12,7 +12,7 @@
 <hr>
 {% endif %}
 <hr>
-<b>Threads:</b><br>
+<h3 style="margin-bottom:-10px">Threads:</h3><br>
 {% for thread in threads %}
 <i>Thread: </i><a href="/section/{{ thread.section_id }}/{{ thread.id }}">{{ thread.thread_name }}</a><br>
 <i>Content: </i>{{ thread.content }}<br>

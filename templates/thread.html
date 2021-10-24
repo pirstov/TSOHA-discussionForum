@@ -1,19 +1,24 @@
 <!-- Prevent users without access rights from viewing private sections-->
 {% if hasAccess %}
 
-<h2>{{ thread.thread_name }}</h2>
+{% extends "layout.html" %}
+{% block title %}Thread: {{ thread.thread_name }}{% endblock %}
+
+{% block content %}
+
+<h2>Thread: {{ thread.thread_name }}</h2>
 <a href="/section/{{id}}">Back</a>
 <hr>
-{% if session.username == thread.username %}
-<a href="/section/{{id}}/{{thread_id}}/edit_thread">Edit thread</a>
-<a href="/section/{{id}}/{{thread_id}}/delete_thread">Delete thread</a>
-{% endif %}
-<br>
-
+<p>
 <i>Posting time:</i> {{ thread.posting_time.strftime("%Y-%m-%d %H:%M:%S") }} 
 <br>
 <i>Posted by:</i> {{ thread.username }}
 <br>
+{% if session.username == thread.username %}
+<a href="/section/{{id}}/{{thread_id}}/edit_thread">Edit thread</a>
+<a href="/section/{{id}}/{{thread_id}}/delete_thread">Delete thread</a>
+{% endif %}
+</p>
 {{ thread.content }}
 <hr>
 
@@ -25,6 +30,7 @@
 <hr>
 
 {% for message in messages %}
+<p>
 <i>Posting time:</i> {{ message["posting_time"].strftime("%Y-%m-%d %H:%M:%S") }} 
 <br>
 <i>Posted by:</i> {{ message.username }}
@@ -32,11 +38,13 @@
 {% if session.username == message.username %}
 <a href="/section/{{id}}/{{thread_id}}/{{message.id}}/edit_message">Edit message</a>
 <a href="/section/{{id}}/{{thread_id}}/{{message.id}}/delete_message">Delete message</a>
-<br>
 {% endif %}
+</p>
 {{ message["content"] }}
 <hr style="margin-bottom:0.1cm" >
 {% endfor %}
+
+{% endblock %}
 
 {% else %}
 You do not have permission to view this page.

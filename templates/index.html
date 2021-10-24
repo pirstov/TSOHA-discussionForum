@@ -1,52 +1,24 @@
-<!-- Title and forum name with a brief description -->
-<title>The forum</title>
-<h1>The forum</h1>
-<h2>A place for discussion</h2>
+{% extends "layout.html" %}
+{% block title %}Front page{% endblock %}
 
-<!-- Search functionality -->
-<hr>
-<form action="/result" method="GET">
-    <p> Search the forum: <input type = "text" name ="query">
-    <input type="hidden" name="prevURL" value = {{ request.path }}>
-    <br>
-    <input type ="submit" value="Search"></p>
-</form>
-<hr>
+{% block content %}
 
-<!-- Log in / log out possibility -->
-{% if session.username %}
-<p>You are logged in as {{ session.username }}
-    {% if isModerator %}
-    (Moderator)
-    <br>
-    <a href="/promoteuser">Grant moderator rights to a user</a>
-    {% endif %}
-</p>
-<a href="/logout">Log out</a>
-
-{% else %}
-<p>You are not logged in.</p>
-<a href="/loginpage">Log in</a> 
-<br>
-<a href="/register">Create account</a>
-{% endif %}
-
+<h2>Sections</h2>
 <!-- For moderators: creation of additional sections -->
 {% if isModerator %}
-    <hr>
     <a href="/createsection">Create section</a>
 {% endif %}
 
 <!-- For displaying the current sections in the forum -->
 <hr>
 {% for section in sections %}
-<a href="/section/{{ section.id }}">{{ section.section_name }}</a>
+<a href="/section/{{ section.id }}"><p style="font-size:110%;margin-bottom:-10px">{{ section.section_name }}</a>
 {% if section.private %}
  (Private)
 {% endif %}
 {% if isModerator %}
 <span style="float: right">(<a href="/deletesection/{{ section.id }}">Delete section</a>)</span>
-{% endif %}
+{% endif %}</p>
 <br>
 Number of threads: {{ section.thread_count }} <br>
 Number of messages: {{ section.message_count }}<br>
@@ -58,3 +30,5 @@ Time stamp of the latest message:
 {% endif %}
 <hr>
 {% endfor %}
+
+{% endblock %}

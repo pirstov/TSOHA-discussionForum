@@ -110,7 +110,7 @@ def section(id):
     # Fetch the threads within the section
     threads = forum.list_threads(id)
 	
-    return render_template("section.html", id = id, threads = threads, sectionName = sectionName, isPrivate = isPrivate, isModerator=isModerator, hasAccess = hasAccess)
+    return render_template("section.html", id = id, threads = threads, sectionName = sectionName, isPrivate = isPrivate, isModerator = isModerator, hasAccess = hasAccess)
 
 # Thread creation page
 @app.route("/section/<id>/createthread")
@@ -154,11 +154,12 @@ def thread(id, thread_id):
         session["url"] = "/section/" + str(id) + "/" + str(thread_id)
 
     hasAccess = users.check_section_access(id)
+    isModerator = users.is_moderator()
 
     thread = forum.get_thread(thread_id)
     messages = forum.get_messages(thread_id)
 
-    return render_template("thread.html", messages = messages, id = id, thread_id = thread_id, thread = thread, hasAccess = hasAccess)
+    return render_template("thread.html", messages = messages, id = id, thread_id = thread_id, thread = thread, isModerator = isModerator, hasAccess = hasAccess)
 
 
 # Page for writing a reply to a thread

@@ -27,8 +27,6 @@ of the above requirements,
 Next steps include, but are not limited to:
 - Implement limiting of name/pw/message/title/lengths
 - Improving the interactivity of the forum by adding more messages for the user related to succesful logins, account/thead/message creations
-- Improving the layout of the pages
-- Implementing the calculation of number of replies in each thread for the section view
 
 
 To test this app in Heroku, enter the following in command line while accessing the project folder:
@@ -42,7 +40,7 @@ To test this app in Heroku, enter the following in command line while accessing 
 
 This should yield succesful deployment of a Heroku webpage for the discussion forum.
 
-Link to the Heroku app: http://tsoha-discussionforum.herokuapp.com/ (LAST UPDATED: 10th of October)
+Link to the Heroku app: http://tsoha-discussionforum.herokuapp.com/ (LAST UPDATED: 24th of October 2021)
 
 PRE-MADE ACCOUNTS FOR TESTING:
 user: root / password: root (moderator account)

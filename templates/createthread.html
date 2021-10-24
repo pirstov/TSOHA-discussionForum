@@ -1,8 +1,10 @@
 <!-- Prevent users without access rights from viewing private sections-->
 {% if hasAccess %}
 
+<p>
 <b>Thread creation page</b><br>
 <a href="/section/{{id}}">Back</a>
+</p>
 
 {% if error %}
 <p class=error><strong style="color:red">Error:</strong> {{ error }}

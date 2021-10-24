@@ -1,23 +1,18 @@
 <!-- Prevent users without access rights from viewing private sections-->
 {% if hasAccess %}
 
-<h1>{{ sectionName }}
+{% extends "layout.html" %}
+{% block title %}Section: {{  sectionName }}{% endblock %}
+
+{% block content %}
+
+<h2>Section: {{ sectionName }}
 {% if isPrivate %}
  (Private)
-{% endif %}</h1>
+{% endif %}</h2>
+
 <a href="/">Back</a>
-
-<!-- Search functionality -->
-<hr>
-<form action="/result" method="GET">
-    <p> Search the forum: <input type = "text" name ="query">
-    <input type="hidden" name="prevURL" value = {{ request.path }}>
-    <br>
-    <input type ="submit" value="Search"></p>
-</form>
-<hr>
-
-
+<br>
 {% if session.username %}
 <a href="/section/{{id}}/createthread">Create thread</a> 
 {% if isModerator and isPrivate %}
@@ -31,12 +26,14 @@
 
 <hr>
 {% for thread in threads %}
-<a href="/section/{{ id }}/{{ thread.id }}">{{ thread.thread_name }}</a> <br>
+<a href="/section/{{ id }}/{{ thread.id }}"><p style="font-size:110%;margin-bottom:-10px">{{ thread.thread_name }}</p></a> <br>
 Created: {{ thread.posting_time.strftime("%Y-%m-%d %H:%M:%S") }} <br>
 Posted by: {{ thread.username }} <br>
 Number of replies: {{ thread.reply_count }} <br>
 <hr>
 {% endfor %}
+
+{% endblock %}
 
 {% else %}
 You do not have permission to view this page.
