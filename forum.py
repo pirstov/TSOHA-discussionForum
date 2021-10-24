@@ -63,8 +63,9 @@ def delete_section(id):
 def list_threads(id):
 
     # Query for the thread id, posting time, thread name, and username of the poster for each thread
-    sql = "SELECT T.id, T.posting_time, T.thread_name, U.username FROM threads T"\
-    " LEFT JOIN users U ON T.user_id = U.id WHERE T.section_id=:id AND T.visible=true ORDER BY T.posting_time DESC"
+    sql = "SELECT T.id, T.posting_time, T.thread_name, U.username, COUNT(M.id) AS reply_count FROM users U LEFT JOIN threads T"\
+    " ON T.user_id = U.id LEFT JOIN messages M ON T.id = M.thread_id WHERE T.section_id=:id AND T.visible=true "\
+    " GROUP BY (T.id, U.username) ORDER BY T.posting_time DESC"
     result = db.session.execute(sql, {"id": id})
     threads = result.fetchall()
 
