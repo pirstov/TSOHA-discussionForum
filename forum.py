@@ -6,6 +6,7 @@ from flask import session
 
 # --- SECTIONS ---
 
+# Create a section with the name and privacy according to its arguments
 def create_section(section_name, make_private):
 
     sql = "INSERT INTO sections (section_name, private) VALUES (:section_name, :make_private) RETURNING id"
@@ -14,6 +15,8 @@ def create_section(section_name, make_private):
 
     return section_id
 
+
+# Form a list of sections based on the user rights
 def list_sections():
 
     if "username" in session:
@@ -34,24 +37,29 @@ def list_sections():
 
     return sections
 
+
+# Query for the section name corresponding to the id
 def get_section_name(id):
-    # Query for the section name corresponding to the id
+    
     sql = "SELECT section_name FROM sections WHERE id=:section_id"
     result = db.session.execute(sql, {"section_id": id})
     sectionName = result.fetchone().section_name
+
     return sectionName
 
 
+# Check whether a section is private
 def check_section_privacy(id):
+
     sql = "SELECT private FROM sections WHERE id=:id"
     result = db.session.execute(sql, {"id":id})
     isPrivate = result.fetchone().private
 
     return isPrivate
 
-
+# Delete a section
 def delete_section(id):
-    # Update the visible value of the deleted section to false 
+
     sql = "UPDATE sections SET visible=false WHERE id=:section_id"
     db.session.execute(sql, {"section_id": id})
     db.session.commit()
@@ -59,10 +67,9 @@ def delete_section(id):
 
 # --- THREADS ---
 
-
+# Query for the relevant columns of threads in the argument section
 def list_threads(id):
 
-    # Query for the thread id, posting time, thread name, and username of the poster for each thread
     sql = "SELECT T.id, T.posting_time, T.thread_name, U.username, COUNT(M.id) AS reply_count FROM users U LEFT JOIN threads T"\
     " ON T.user_id = U.id LEFT JOIN messages M ON T.id = M.thread_id WHERE T.section_id=:id AND T.visible=true "\
     " GROUP BY (T.id, U.username) ORDER BY T.posting_time DESC"
@@ -72,9 +79,9 @@ def list_threads(id):
     return threads
 
 
+# Query for the relevant columns of a thread given as an argument
 def get_thread(thread_id):
 
-    # Query for the thread name and content
     sql = "SELECT T.thread_name, T.posting_time, T.content, U.username FROM threads T LEFT JOIN users U ON T.user_id = U.id WHERE T.id=:thread_id"
     result = db.session.execute(sql, {"thread_id":thread_id})
     thread = result.fetchone()
@@ -82,11 +89,11 @@ def get_thread(thread_id):
     return thread
 
 
+# Add a thread with a title, message and section identifier according to the arguments
 def post_thread(threadTitle, message, id):
 
     user_id = users.get_user_id()
 
-    # Insert thread into database
     sql = "INSERT INTO threads (posting_time, user_id, section_id, thread_name, content) VALUES (NOW(), :user_id, :id, :threadTitle, :message) RETURNING id"
     result = db.session.execute(sql, {"user_id":user_id, "id":id, "threadTitle":threadTitle, "message":message})
     db.session.commit()
@@ -94,14 +101,16 @@ def post_thread(threadTitle, message, id):
 
     return thread_id
 
+
+# Update a thread given as an argument with the title and content given as arguments 
 def post_thread_edit(thread_name, content, thread_id):
 
-    # Update the thread database table accordingly
     sql = "UPDATE threads SET thread_name=:thread_name, content=:content WHERE id=:thread_id"
     db.session.execute(sql, {"thread_name":thread_name, "content":content, "thread_id":thread_id})
     db.session.commit()
 
 
+# Delete the thread given as an argument
 def delete_thread(thread_id):
 
     sql = "UPDATE messages SET visible=false WHERE thread_id=:thread_id"
@@ -113,6 +122,8 @@ def delete_thread(thread_id):
     db.session.execute(sql, {"thread_id":thread_id})
     db.session.commit()
 
+
+# Check if the user is the creator of the thread given as the argument
 def check_if_thread_creator(thread_id):
     if not "username" in session:
         return False
@@ -127,6 +138,7 @@ def check_if_thread_creator(thread_id):
 
 # --- MESSAGES ----
 
+# Fetch relevant information related to messages in the thread given as an argument
 def get_messages(thread_id):
 
     # Query for the messages posted in the thread
@@ -137,6 +149,7 @@ def get_messages(thread_id):
 
     return messages
 
+# Fetch the content of the message given as an argument
 def get_message(message_id):
 
     # Query for the current content of the edited message
@@ -147,6 +160,7 @@ def get_message(message_id):
     return message
 
 
+# Add a message with content and thread identifier given by the argument to the database
 def post_message(content, thread_id):
 
     user_id = users.get_user_id()
@@ -157,13 +171,21 @@ def post_message(content, thread_id):
     db.session.commit()
 
 
+# Update a message given as an argument with the content given as another argument
 def post_message_edit(content, message_id):
     
     sql = "UPDATE messages SET content=:content WHERE id=:message_id"
     db.session.execute(sql, {"content":content, "message_id":message_id})
     db.session.commit()
 
+# Delete the message given as an argument
+def delete_message(message_id):
 
+    sql = "UPDATE messages SET visible=false WHERE id=:message_id"
+    db.session.execute(sql, {"message_id": message_id})
+    db.session.commit()
+
+# Check if the user is the creator of the message given as an argument
 def check_if_message_creator(message_id):
     if not "username" in session:
         return False
@@ -179,6 +201,7 @@ def check_if_message_creator(message_id):
 
 # --- QUERY ---
 
+# Fetch the threads and messages with the queried string in them
 def search_forum(query):
 
     # Search for messages containing the queried string

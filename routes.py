@@ -52,7 +52,7 @@ def createaccount():
     else:
         # Account creation unsuccesful, provide the user an error message
         error = "Username already in use"
-        return render_template("register.html", error = error)
+        return render_template("register.html", error = error, prevURL = session["url"])
 
 # Login page
 @app.route("/loginpage")
@@ -70,7 +70,7 @@ def login():
 	# Check if something has been input
     if not username or not password:
         error = "Please type in both the username and password"
-        return render_template("loginpage.html", error=error, prevURL = session["url"])
+        return render_template("loginpage.html", error = error, prevURL = session["url"])
 
     if users.login(username, password):
         # Login successful
@@ -105,12 +105,15 @@ def section(id):
     # Check if the user is a moderator
     isModerator = users.is_moderator()
 
+    # Fetch the section name and whether it is private
     sectionName = forum.get_section_name(id)
     isPrivate = forum.check_section_privacy(id)
+
     # Fetch the threads within the section
     threads = forum.list_threads(id)
 	
     return render_template("section.html", id = id, threads = threads, sectionName = sectionName, isPrivate = isPrivate, isModerator = isModerator, hasAccess = hasAccess)
+
 
 # Thread creation page
 @app.route("/section/<id>/createthread")
@@ -141,6 +144,7 @@ def post_thread(id):
         error = "Please include both the thread and a message"
         return render_template("createthread.html", id = id, error = error, hasAccess = True)
 
+    # Add the thread to the database
     thread_id = forum.post_thread(threadTitle, message, id)
 
     return redirect("/section/" + str(id) + "/" + str(thread_id))
@@ -153,9 +157,12 @@ def thread(id, thread_id):
     if not "username" in session:
         session["url"] = "/section/" + str(id) + "/" + str(thread_id)
 
+    # Check if the user has access to the section
     hasAccess = users.check_section_access(id)
+    # Check if the user is a moderator
     isModerator = users.is_moderator()
 
+    # Fetch the thread and messages within it
     thread = forum.get_thread(thread_id)
     messages = forum.get_messages(thread_id)
 
@@ -190,6 +197,7 @@ def post_reply(id, thread_id):
         error = "Empty replies are not allowed"
         return render_template("reply.html", id = id, thread_id = thread_id, error = error, hasAccess = True)	
 
+    # Add the message to the database
     forum.post_message(content, thread_id)
 
     return redirect("/section/" + str(id) + "/" + str(thread_id))
@@ -210,6 +218,7 @@ def edit_thread(id, thread_id):
         # Take the logical AND of these two conditions
         hasAccess = hasAccess and isCreator
 
+    # Fetch the content and title of the thread to be edited
     thread = forum.get_thread(thread_id)
 
     return render_template("editthread.html", id = id, thread_id = thread_id, thread = thread, error = None, hasAccess = hasAccess)
@@ -232,6 +241,7 @@ def post_thread_edit(id, thread_id):
         thread = {"thread_name": thread_name, "content": content}
         return render_template("editthread.html", id = id, thread_id = thread_id, thread = thread, error = error, hasAccess = True)
 	
+    # Update the thread according to the edits
     forum.post_thread_edit(thread_name, content, thread_id)
 
     return redirect("/section/" + str(id) + "/" + str(thread_id))
@@ -252,6 +262,7 @@ def edit_message(id, thread_id, message_id):
         # Take the logical AND of these two conditions
         hasAccess = hasAccess and isCreator
 
+    # Fetch the content of the message to be edited
     message = forum.get_message(message_id)
 
     return render_template("editmessage.html", id=id, thread_id = thread_id, message_id = message_id, message = message, error = None, hasAccess = hasAccess)
@@ -272,6 +283,7 @@ def post_message_edit(id, thread_id, message_id):
         error = "Please add a message"
         return render_template("editmessage.html", id = id, thread_id = thread_id, message_id = message_id, message = None, error = error, hasAccess = True)
 	
+    # Update the message according to the edits
     forum.post_message_edit(content, message_id)
 
     return redirect("/section/" + str(id) + "/" + str(thread_id))
@@ -280,22 +292,15 @@ def post_message_edit(id, thread_id, message_id):
 # Deleting a message in a thread
 @app.route("/section/<id>/<thread_id>/<message_id>/delete_message")
 def delete_message(id, thread_id, message_id):
-	# Check that the user is actually the one who wrote the message
-	if not "username" in session:
-		return redirect("/section/" + str(id) + "/" + str(thread_id))
-	else:
-		# Check that the user is actually the one who wrote the message
-		sql = "SELECT U.username FROM messages M LEFT JOIN users U ON m.user_id = U.id WHERE m.id=:message_id"
-		result = db.session.execute(sql, {"message_id": message_id})
-		user = result.fetchone().username
-		if (user == session["username"]):
-			# If the user matches, set the visibility of the deleted message to false
-			sql = "UPDATE messages SET visible=false WHERE id=:message_id"
-			db.session.execute(sql, {"message_id": message_id})
-			db.session.commit()
+    if not "username" in session:
+        # User is not logged in, no permission to delete messages
+        return redirect("/section/" + str(id) + "/" + str(thread_id))
+    else:
+        # If the user is the message creator, delete the message
+        if forum.check_if_message_creator(message_id):
+            forum.delete_message(message_id)
 
-		# Return to the thread
-		return redirect("/section/" + str(id) + "/" + str(thread_id))
+        return redirect("/section/" + str(id) + "/" + str(thread_id))
 
 
 # Deleting a thread and all its associated messages
@@ -303,7 +308,7 @@ def delete_message(id, thread_id, message_id):
 def delete_thread(id, thread_id):
 	    
     if not "username" in session:
-        # User not logged in, redirect to thread
+        # User not logged in, no permission to delete threads
         return redirect("/section/" + str(id) + "/" + str(thread_id))
     else:
         # If the user is the thread creator, delete the thread
@@ -312,7 +317,6 @@ def delete_thread(id, thread_id):
 
             return redirect("/section/" + str(id))
         else:
-            # The user is not the creator, redirect to thread
             return redirect("/section/" + str(id) + "/" + str(thread_id))
 
 
@@ -326,21 +330,19 @@ def result():
     # Set the query to lowercase to prevent case sensitivity
     query = request.args["query"].lower()
 
+    # Fetch the threads and messages matching the query
     messages, threads = forum.search_forum(query)
 
-	# Render a page for the query results
     return render_template("result.html", messages = messages, threads = threads, prevURL = prevURL)
+
 
 # Creation of sections
 @app.route("/createsection")
 def createsection():
-    if not "username" in session:
-        hasAccess = False
-    else:
-        # User with moderator status can create sections
-        hasAccess = users.is_moderator()
 
-    # Render the section creation page
+    # User with moderator status can create sections
+    hasAccess = users.is_moderator()
+
     return render_template("createsection.html", error = None, hasAccess = hasAccess)
 
 # Adding the section to the database table
@@ -361,6 +363,7 @@ def post_section():
     # Create a boolean variable based on whether the checkbox "make private" is checked (True) or not (False)
     make_private = (len(request.form.getlist("makePrivate")) == 1)
 
+    # Add the section to the database, return its identifier
     section_id = forum.create_section(section_name, make_private)
 
     # If the newly-created section is private, grant the creator access to it
@@ -383,14 +386,11 @@ def deletesection(section_id):
 @app.route("/promoteuser")
 def promoteuser():
 
-    if not "username" in session:
-        return redirect("/")
+    # The user has to be a moderator
+    if users.is_moderator():
+        return render_template("promoteuser.html", error = None)
     else:
-        # The user has to be a moderator
-        if users.is_moderator():
-            return render_template("promoteuser.html", error = None)
-        else:
-            return redirect("/")
+        return redirect("/")
 		
 
 # Applying the promotion to the user table
@@ -408,6 +408,7 @@ def applyPromotion():
         error = "Please type in a username"
         return render_template("promoteuser.html", error = error)
 
+    # Attempt to promote the user
     if users.promote_user(username):
         return redirect("/")
     else:
@@ -424,6 +425,7 @@ def grantuseraccess(id):
         # The user needs to be a moderator and have access to the section
         hasAccess = users.check_section_access(id) and users.is_moderator()
 
+    # Fetch the section name
     sectionName = forum.get_section_name(id)
 	
     return render_template("grantuseraccess.html", id = id, section_name = sectionName, error = None, hasAccess = hasAccess)
@@ -442,10 +444,12 @@ def applyuseraccess(id):
 	# Check that a valid username is typed in
     if not username or not users.is_existing_username(username):
         error = "Invalid username"
+        # Fetch the section name
         sectionName = forum.get_section_name(id)
         
         return render_template("grantuseraccess.html", id = id, section_name = sectionName, error = error, hasAccess = True)
 
+    # Add the user access to the section by adding an entry to the database
     users.grant_private_section_access(username, id)
 
     return redirect("/section/" + str(id))

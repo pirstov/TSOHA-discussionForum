@@ -9,6 +9,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import secrets
 
 
+# Add an account with the username and password as given in the arguments
 def create_account(username, password):
 
     # generate the hash for the password
@@ -31,6 +32,8 @@ def create_account(username, password):
         # Registration failed, username in use
 		return False
 
+
+# Login and enter a session
 def login(username, password):
 
     # Check the validity of the input
@@ -42,7 +45,8 @@ def login(username, password):
 		#error = "Invalid username or password"
 		return False
 
-	# NOTE: THIS IS TEMPORARY CODE BLOCK FOR CHECKING FUNCTIONALITY
+	# Note: the two premade accounts here are merely for testing,
+    # and under realistic application development they would not be here
 	# -------------------------------------------------------------
 	if username == "root":
 		user_password = generate_password_hash("root")
@@ -50,7 +54,7 @@ def login(username, password):
 		user_password = generate_password_hash("123")
 	else:
 		user_password = user.password
-	# --------------------------------------------------------------
+	# -------------------------------------------------------------
 
 	# Check the correctness of password
 	if check_password_hash(user_password, password):
@@ -64,10 +68,14 @@ def login(username, password):
 		# Login failed, incorrect password
 		return False
 
+
+# End the session
 def logout():
 
     del session["username"]
 
+
+# Check if the user is a moderator
 def is_moderator():
     if not "username" in session:
         return False
@@ -80,6 +88,8 @@ def is_moderator():
         else:
             return False
 
+
+# Check that the crsf token is valid
 def crsf_token_valid(crsf_token_input):
 
     if session["crsf_token"] != crsf_token_input:
@@ -87,6 +97,8 @@ def crsf_token_valid(crsf_token_input):
     else:
         return True
 
+
+# Promote the user to become a moderator
 def promote_user(username):
 
     # Check that the typed in string is an actual username
@@ -104,6 +116,8 @@ def promote_user(username):
 
     return True
 
+
+# Check that the user has access to the section given as an argument
 def check_section_access(section_id):
 
     sql = "SELECT private FROM sections WHERE id=:section_id"
@@ -128,6 +142,8 @@ def check_section_access(section_id):
         # The section is not private, access is granted
         return True
 
+
+# Check if the username given as an argument already exists
 def is_existing_username(username):
 
     # Check that the typed in string is an actual username
@@ -140,6 +156,7 @@ def is_existing_username(username):
     else:
         return False
 
+# Give the user given as an argument access to private section given as the second argument
 def grant_private_section_access(username, section_id):
 
     user_id = get_user_id(username)
@@ -147,7 +164,7 @@ def grant_private_section_access(username, section_id):
     db.session.execute(sql, {"user_id":user_id, "section_id": section_id})
     db.session.commit()
 
-
+# Fetch the user id based on the username either given as an argument or based on the session
 def get_user_id(username = None):
     if not username:
         if not "username" in session:
